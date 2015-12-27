@@ -15,13 +15,30 @@
  */
 package com.example.android.sunshine.app.data;
 
+import android.content.ContentValues;
+import android.net.Uri;
 import android.provider.BaseColumns;
+import android.support.annotation.NonNull;
 import android.text.format.Time;
+import android.util.Log;
+
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Defines table and column names for the weather database.
  */
 public class WeatherContract {
+
+    public static final String DATABASE_NAME = "weather.db";
+    public static final String CONTENT_SCHEME = "content";
+    public static final String CONTENT_AUTHORITY = "com.example.android.sunshine.app";
+    private static final Uri BASE_CONTENT_URI = (new Uri.Builder())
+            .scheme(CONTENT_SCHEME)
+            .authority(CONTENT_AUTHORITY)
+            .build();
+    public static final String SORT_ORDER_ASCENDING = "ASC";
+    public static final String DECENDING = "DEC";
 
     // To make it easy to query for the exact date, we normalize all dates that go into
     // the database to the start of the the Julian day at UTC.
@@ -40,13 +57,98 @@ public class WeatherContract {
      */
     public static final class LocationEntry implements BaseColumns {
         public static final String TABLE_NAME = "location";
+        public static final String PATH = TABLE_NAME;
+        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH).build();
+        /**
+         * The name of the columns in the location database
+         */
+        public static final String COLUMN_LOCATION_SETTING = "location_setting";
+        public static final String COLUMN_COORD_LAT = "coord_lat";
+        public static final String COLUMN_COORD_LONG = "coord_long";
+        public static final String COLUMN_CITY_NAME = "city_name";
+        public static final String[] COLUMN_NAMES = {
+                COLUMN_LOCATION_SETTING,
+                COLUMN_COORD_LAT,
+                COLUMN_COORD_LONG,
+                COLUMN_CITY_NAME
+        };
+        private static final String KEY = "id";
+        /**
+         * The MIME type; TODO: probably should not be the table's name
+         */
+        public static final String CONTENT_TYPE = TABLE_NAME;
+        private static final String TAG = LocationEntry.class.getSimpleName();
 
+        /**
+         * Use this method to build a URI to query the location table
+         * @param id
+         * @return
+         */
+        public static Uri buildLocationUri(long id){
+            return CONTENT_URI.buildUpon().appendPath(String.valueOf(id)).build();
+
+        }
+
+        public static Uri buildLocationUri(String locationSetting) {
+            return CONTENT_URI.buildUpon().appendPath(locationSetting).build();
+        }
+
+        /**
+         * Builds a URI that indicates the table and row affected by the {@link android.content.ContentProvider}
+         * @param id
+         * @return
+         */
+        public static Uri buildReturnUri(long id) {
+            return CONTENT_URI.buildUpon().appendPath(String.valueOf(id)).build();
+        }
+
+        public static long getRowIdFromReturnUri(Uri uri){
+            Long rowId = 0L;
+            String lastPathSegment = null;
+            if (WeatherProvider.buildUriMatcher().match(uri) == WeatherProvider.LOCATION_WITH_ID){
+                lastPathSegment = uri.getLastPathSegment();
+                rowId = Long.parseLong(lastPathSegment);
+            }
+            Log.i(TAG, "getRowIdFromReturnUri()"
+                            +"\t -- uri: "+uri
+                            +"\t -- lastPathSegment: "+lastPathSegment
+                            +"\t -- rowId: "+rowId
+            );
+            try {
+                if (rowId == null){
+                    throw new ContractViolationException("*** Last path segment should be a long *** lastPathSegment: " + lastPathSegment);
+                }
+            } catch (ContractViolationException e) {
+                e.printStackTrace();
+            }
+            return rowId;
+        }
+
+        @NonNull
+        public static ContentValues buildContentValues(
+                @NonNull String locationSetting,
+                @NonNull String cityName,
+                double lat,
+                double lon) {
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(COLUMN_LOCATION_SETTING, locationSetting);
+            contentValues.put(COLUMN_CITY_NAME, cityName);
+            contentValues.put(COLUMN_COORD_LAT, lat);
+            contentValues.put(COLUMN_COORD_LONG, lon);
+            return contentValues;
+        }
     }
 
     /* Inner class that defines the table contents of the weather table */
     public static final class WeatherEntry implements BaseColumns {
+        private static final String TAG = WeatherEntry.class.getSimpleName();
 
         public static final String TABLE_NAME = "weather";
+        public static final String PATH= WeatherEntry.TABLE_NAME;
+        /**
+         * The base URI for weather table queries.
+         */
+        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH).build();
 
         // Column with the foreign key into the location table.
         public static final String COLUMN_LOC_KEY = "location_id";
@@ -69,10 +171,115 @@ public class WeatherContract {
         // Humidity is stored as a float representing percentage
         public static final String COLUMN_PRESSURE = "pressure";
 
-        // Windspeed is stored as a float representing windspeed  mph
+        // Wind speed is stored as a float representing wind speed  mph
         public static final String COLUMN_WIND_SPEED = "wind";
 
         // Degrees are meteorological degrees (e.g, 0 is north, 180 is south).  Stored as floats.
         public static final String COLUMN_DEGREES = "degrees";
+
+        // MIME-type (?)
+        public static final String CONTENT_TYPE = "x-" + TABLE_NAME;
+
+        // MIME-type for location and data resource (?)
+        public static final String CONTENT_ITEM_TYPE = CONTENT_TYPE + "/" + "x-location-date";
+        public static final int PATH_SEGMENT_LOCATION = 1;
+
+        /**
+         * Use this method to build a URI to query the weather table for a specific location
+         *
+         * @param location
+         * @return
+         */
+        public static Uri buildWeatherLocation(String location) {
+            return CONTENT_URI.buildUpon().appendPath(location).build();
+        }
+
+        /**
+         * Use this method to build a URI to query the weather table for a specific location on or after a specific date
+         * TODO: convert or format timeMillis (or maybe it's ok as is?)
+         *
+         * @param location the location we want to query the database for
+         * @param timeMillis  the time in msec of the start of the date range of forecasts we want
+         * @return
+         */
+        public static Uri buildWeatherLocationWithStartDate(String location, long timeMillis) {
+            Uri uri = buildWeatherLocation(location).buildUpon().appendPath(String.valueOf(timeMillis))
+                    .build();
+            Log.i(TAG, "buildWeatherLocationWithStartDate()"
+                +"\t -- uri.toString(): "+uri.toString()
+            );
+            return uri;
+        }
+
+        public static String getLocationSettingFromUri(Uri uri) {
+            return uri.getPathSegments().get(PATH_SEGMENT_LOCATION);
+        }
+
+        /**
+         * TODO: not sure what this should return; just make it the same as {@link #getDateFromUri(Uri)} for now
+         * @param uri
+         * @return the time in msec (since the start of the epoch)
+         */
+        public static long getStartDateFromUri(Uri uri) {
+            return getDateFromUri(uri);
+        }
+
+        /**
+         * FIXME: maybe it would be better to use WeatherProvider.sUriMatcher, but we'd still
+         * want to throw an Exception if we couldn't extract the date, so this implementation is probably ok
+         * @param uri
+         * @return the extracted date if the uri contains a date, or zero if it does not
+         */
+        public static long getDateFromUri(Uri uri) {
+            Long date = 0L;
+            String lastPathSegment = null;
+            if (WeatherProvider.buildUriMatcher().match(uri) == WeatherProvider.WEATHER_WITH_LOCATION_AND_DATE){
+                lastPathSegment = uri.getLastPathSegment();
+                date = Long.parseLong(lastPathSegment);
+            }
+            Log.i(TAG, "getDateFromUri()"
+                            +"\t -- uri: "+uri
+                            +"\t -- lastPathSegment: "+lastPathSegment
+                            +"\t -- date: "+date
+            );
+            try {
+                if (date == null){
+                    throw new ContractViolationException("*** Last path segment should be a long *** lastPathSegment: " + lastPathSegment);
+                }
+            } catch (ContractViolationException e) {
+                e.printStackTrace();
+            }
+            return date;
+        }
+
+        public static Uri buildWeatherUri(long id) {
+            return CONTENT_URI.buildUpon().appendPath(String.valueOf(id)).build();
+        }
+
+        /**
+         * Do we need this? Seems to duplicate {@link #buildWeatherLocationWithStartDate(String, long)}
+         * TODO: convert or format the data parameter (or maybe it's ok as is?)
+         * @param location
+         * @param date
+         * @return
+         */
+        public static Uri buildWeatherLocationWithDate(String location, long date) {
+            return buildWeatherLocation(location).buildUpon().appendPath(String.valueOf(date)).build();
+        }
+
+        /**
+         * Builds a URI that indicates the table and row affected by the {@link android.content.ContentProvider}
+         * @param id
+         * @return
+         */
+        public static Uri buildReturnUri(long id) {
+            return CONTENT_URI.buildUpon().appendPath(String.valueOf(id)).build();
+        }
+    }
+
+    private static class ContractViolationException extends Exception {
+        public ContractViolationException(String detailMessage) {
+            super(detailMessage);
+        }
     }
 }
