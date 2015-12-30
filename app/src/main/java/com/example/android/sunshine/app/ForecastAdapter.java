@@ -43,22 +43,13 @@ public class ForecastAdapter extends CursorAdapter {
         string.
      */
     private String convertCursorRowToUXFormat(Cursor cursor) {
-//        WeatherDbHelper.printTable(cursor);
-        // get row indices for our cursor
-        int idx_max_temp = cursor.getColumnIndex(WeatherContract.WeatherEntry.COLUMN_MAX_TEMP);
-        int idx_min_temp = cursor.getColumnIndex(WeatherContract.WeatherEntry.COLUMN_MIN_TEMP);
-        int idx_date = cursor.getColumnIndex(WeatherContract.WeatherEntry.COLUMN_DATE);
-        int idx_short_desc = cursor.getColumnIndex(WeatherContract.WeatherEntry.COLUMN_SHORT_DESC);
+        double maxTemp = cursor.getDouble(WeatherContract.COL_WEATHER_MAX_TEMP);
+        double minTemp = cursor.getDouble(WeatherContract.COL_WEATHER_MIN_TEMP);
 
-        double maxTemp = cursor.getDouble(idx_max_temp);
-        double minTemp = cursor.getDouble(idx_min_temp);
+        String highAndLow = formatHighLows(maxTemp, minTemp);
 
-        String highAndLow = formatHighLows(
-                maxTemp,
-                minTemp);
-
-        String uxFormat = Utility.formatDate(cursor.getLong(idx_date)) +
-                " - " + cursor.getString(idx_short_desc) +
+        String uxFormat = Utility.formatDate(cursor.getLong(WeatherContract.COL_WEATHER_DATE)) +
+                " - " + cursor.getString(WeatherContract.COL_WEATHER_DESC) +
                 " - " + highAndLow;
         return uxFormat;
     }

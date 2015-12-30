@@ -157,7 +157,7 @@ public class ForecastFragment
                 WeatherContract.WeatherEntry.buildWeatherLocation(locationSetting);
         // Sort Cursor by forecast date in ascending order
         String sortOrder = WeatherContract.WeatherEntry.COLUMN_DATE + " " + WeatherContract.SORT_ORDER_ASCENDING;
-        cursorLoader = new CursorLoader(getActivity(), uri, null, null, null, sortOrder);
+        cursorLoader = new CursorLoader(getActivity(), uri, WeatherContract.FORECAST_COLUMNS, null, null, sortOrder);
         Log.d(TAG, "onCreateLoader()"
                         + "\n\t -- id: " + id
                         + "\n\t -- uri: " + uri
