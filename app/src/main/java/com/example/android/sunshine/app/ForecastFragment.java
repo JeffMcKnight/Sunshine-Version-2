@@ -138,13 +138,6 @@ public class ForecastFragment
         weatherTask.execute(location);
     }
 
-    @Override
-    public void onStart() {
-        Log.i(TAG, "onStart()");
-        super.onStart();
-        updateWeather();
-    }
-
     /**
      * A {@link LoaderManager.LoaderCallbacks} method that creates a {@link Loader} if requested by
      * the {@link LoaderManager}
@@ -210,6 +203,15 @@ public class ForecastFragment
                         + "\n\t -- loader: " + loader
         );
         mForecastAdapter.swapCursor(null);
+    }
+
+    /**
+     * Update the underlying data cache to get the correct weather for the new location, and then
+     * restart the CursorLoader to update the new weather data to the screen
+     */
+    public void onLocationChanged(){
+        updateWeather();
+        getLoaderManager().restartLoader(LOADER_ID, null, this);
     }
 
     //    public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
@@ -437,4 +439,5 @@ public class ForecastFragment
 //            }
 //        }
 //    }
+
 }

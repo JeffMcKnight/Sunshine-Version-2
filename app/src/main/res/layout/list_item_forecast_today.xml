@@ -7,28 +7,52 @@
     android:orientation="horizontal"
     android:padding="@dimen/padding_stnd"
     >
-    <ImageView
-        android:id="@+id/list_item_icon"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:src="@drawable/ic_launcher"
-        />
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:padding="@dimen/padding_stnd"
+        android:gravity="center_horizontal"
         android:orientation="vertical"
         >
         <TextView
             android:id="@+id/list_item_date_textview"
             android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:gravity="center_vertical"
-            android:text="Tomorrow"
-            tools:text="Tomorrow"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/font_size_medium"
+            tools:text="Today, January 7"
+            />
+        <TextView
+            android:id="@+id/list_item_high_textview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/font_size_large"
+            tools:text="14°"
+            />
+        <TextView
+            android:id="@+id/list_item_low_textview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/font_size_large"
+            tools:text="5°"
+            />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="center_horizontal"
+        android:padding="@dimen/padding_stnd"
+        android:orientation="vertical"
+        >
+        <ImageView
+            android:id="@+id/list_item_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:src="@drawable/ic_launcher"
+            android:scaleType="center"
             />
         <TextView
             android:id="@+id/list_item_forecast_textview"
@@ -36,35 +60,8 @@
             android:layout_height="0dp"
             android:layout_weight="1"
             android:gravity="center_vertical"
+            android:textSize="@dimen/font_size_medium"
             tools:text="Sunny"
-            />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:padding="@dimen/padding_stnd"
-        android:orientation="vertical"
-        >
-        <TextView
-            android:id="@+id/list_item_high_textview"
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:layout_gravity="end"
-            android:gravity="center_vertical"
-            android:text="71"
-            tools:text="14"
-            />
-        <TextView
-            android:id="@+id/list_item_low_textview"
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:layout_gravity="end"
-            android:gravity="center_vertical"
-            android:text="63"
-            tools:text="5"
             />
     </LinearLayout>
 </LinearLayout>

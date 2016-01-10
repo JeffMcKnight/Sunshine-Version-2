@@ -227,7 +227,10 @@ public class DetailActivity extends ActionBarActivity {
                 double minTemp = cursor.getDouble(WeatherContract.COL_WEATHER_MIN_TEMP);
 
                 boolean isMetric = Utility.isMetric(getActivity());
-                String highLowStr = Utility.formatTemperature(maxTemp, isMetric) + "/" + Utility.formatTemperature(minTemp, isMetric);
+                String highLowStr
+                        = Utility.formatTemperature(maxTemp, isMetric, getActivity())
+                        + "/"
+                        + Utility.formatTemperature(minTemp, isMetric, getActivity());
 
                 uxFormat = Utility.formatDate(cursor.getLong(WeatherContract.COL_WEATHER_DATE)) +
                         " - " + cursor.getString(WeatherContract.COL_WEATHER_DESC) +
