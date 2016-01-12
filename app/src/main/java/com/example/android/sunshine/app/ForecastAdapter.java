@@ -144,7 +144,6 @@ public class ForecastAdapter extends CursorAdapter {
             mForecastDescriptionView = (TextView)view.findViewById(R.id.list_item_forecast_textview);
             mMaxTempView = (TextView)view.findViewById(R.id.list_item_high_textview);
             mMinTempView = (TextView)view.findViewById(R.id.list_item_low_textview);
-
         }
     }
 }

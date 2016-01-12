@@ -201,4 +201,22 @@ public class Utility {
         String monthDayString = monthDayFormat.format(dateInMillis);
         return monthDayString;
     }
+
+    public static CharSequence formatHumidity(long humidity, Context context) {
+        return context.getString(R.string.format_humidity, humidity);
+    }
+
+    public static CharSequence formatWindSpeed(double windSpeed, double windDirectionDegrees, Context context) {
+        Log.i(TAG, "formatWindSpeed()"
+                +"\t -- windDirectionDegrees: "+windDirectionDegrees
+        );
+        final String[] CARDINAL_POINTS = {"N", "NE", "E", "SE", "S", "SW", "W", "NW"};
+        int windDirectionIndex = (int) (((windDirectionDegrees + 22.5f)%360)/45);
+        String windDirection = CARDINAL_POINTS[windDirectionIndex];
+        return context.getString(R.string.format_wind, windSpeed, windDirection);
+    }
+
+    public static CharSequence formatPressure(double pressure, Context context) {
+        return context.getString(R.string.format_pressure, pressure);
+    }
 }
