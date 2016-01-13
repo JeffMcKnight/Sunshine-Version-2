@@ -3,6 +3,7 @@ package com.example.android.sunshine.app;
 import android.content.Context;
 import android.database.Cursor;
 import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.CursorAdapter;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -93,6 +94,12 @@ public class ForecastAdapter extends CursorAdapter {
 //        );
 
         ViewHolder viewHolder = (ViewHolder) view.getTag();
+        int iconResourceId
+                = (cursor.getPosition() == VIEW_TYPE_TODAY)
+                ? Utility.getArtResourceForWeatherCondition(cursor.getInt(WeatherContract.COL_WEATHER_CONDITION_ID))
+                : Utility.getIconResourceForWeatherCondition(cursor.getInt(WeatherContract.COL_WEATHER_CONDITION_ID))
+                ;
+        viewHolder.mIconView.setImageDrawable(ContextCompat.getDrawable(context, iconResourceId));
         viewHolder.mDateView.setText(Utility.getFriendlyDayString(context, cursor.getLong(WeatherContract.COL_WEATHER_DATE)));
         viewHolder.mForecastDescriptionView.setText(cursor.getString(WeatherContract.COL_WEATHER_DESC));
         viewHolder.mMaxTempView.setText(formatTemperature(cursor.getDouble(WeatherContract.COL_WEATHER_MAX_TEMP)));

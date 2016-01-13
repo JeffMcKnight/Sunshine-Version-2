@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.view.MenuItemCompat;
@@ -242,6 +243,14 @@ public class DetailFragment
             if (data.moveToFirst()){
                 Log.i(DetailFragment.LOG_TAG, "onLoadFinished()"
                         +"\n\t -- data.getPosition(): "+data.getPosition()
+                );
+                mIconView.setImageDrawable(
+                        ContextCompat.getDrawable(
+                                context,
+                                Utility.getArtResourceForWeatherCondition(
+                                        data.getInt(COL_WEATHER_CONDITION_ID)
+                                )
+                        )
                 );
                 mDayView.setText(Utility.getDayName(context, data.getLong(DetailFragment.COL_WEATHER_DATE)));
                 mDateView.setText(Utility.formatDate(data.getLong(DetailFragment.COL_WEATHER_DATE)));
