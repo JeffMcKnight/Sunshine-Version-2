@@ -33,11 +33,11 @@ public class DetailActivity extends ActionBarActivity {
      * Use this method to launch {@link DetailActivity}. We pass the location and date as a URI
      * @param context
      * @param locationSetting
-     * @param dateMsec
+     * @param dateInSec
      */
-    public static void launch(Context context, String locationSetting, long dateMsec) {
+    public static void launch(Context context, String locationSetting, long dateInSec) {
         Intent intent = new Intent(context, DetailActivity.class);
-        intent.setData(WeatherContract.WeatherEntry.buildWeatherLocationWithDate(locationSetting, dateMsec));
+        intent.setData(WeatherContract.WeatherEntry.buildWeatherLocationWithDate(locationSetting, dateInSec));
         context.startActivity(intent);
     }
 
@@ -47,7 +47,7 @@ public class DetailActivity extends ActionBarActivity {
         setContentView(R.layout.activity_detail);
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, new DetailFragment())
+                    .add(R.id.weather_detail_container, new DetailFragment())
                     .commit();
         }
     }

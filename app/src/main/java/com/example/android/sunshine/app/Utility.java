@@ -26,6 +26,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.concurrent.TimeUnit;
 
 public class Utility {
     private static final String TAG = Utility.class.getSimpleName();
@@ -59,11 +60,11 @@ public class Utility {
 
     /**
      *
-     * @param dateInMillis
+     * @param dateInSeconds
      * @return
      */
-    static String formatDate(long dateInMillis) {
-        Date date = new Date(dateInMillis);
+    static String formatDate(long dateInSeconds) {
+        Date date = new Date(TimeUnit.SECONDS.toMillis(dateInSeconds));
         return DateFormat.getDateInstance().format(date);
     }
 
@@ -122,10 +123,10 @@ public class Utility {
      * to users.  As classy and polished a user experience as "20140102" is, we can do better.
      *
      * @param context Context to use for resource localization
-     * @param dateInMillis The date in milliseconds
+     * @param dateInSeconds The date in seconds
      * @return a user-friendly representation of the date.
      */
-    public static String getFriendlyDayString(Context context, long dateInMillis) {
+    public static String getFriendlyDayString(Context context, long dateInSeconds) {
         // The day string for forecast uses the following logic:
         // For today: "Today, June 8"
         // For tomorrow:  "Tomorrow"
@@ -135,7 +136,8 @@ public class Utility {
         Time time = new Time();
         time.setToNow();
         long currentTime = System.currentTimeMillis();
-        int julianDay = Time.getJulianDay(dateInMillis, time.gmtoff);
+        long dateInMsec = TimeUnit.SECONDS.toMillis(dateInSeconds);
+        int julianDay = Time.getJulianDay(dateInMsec, time.gmtoff);
         int currentJulianDay = Time.getJulianDay(currentTime, time.gmtoff);
 
         // If the date we're building the String for is today's date, the format
@@ -146,14 +148,14 @@ public class Utility {
             return String.format(context.getString(
                     formatId,
                     today,
-                    getFormattedMonthDay(context, dateInMillis)));
+                    getFormattedMonthDay(context, dateInMsec)));
         } else if ( julianDay < currentJulianDay + 7 ) {
             // If the input date is less than a week in the future, just return the day name.
-            return getDayName(context, dateInMillis);
+            return getDayName(context, dateInMsec);
         } else {
             // Otherwise, use the form "Mon Jun 3"
             SimpleDateFormat shortenedDateFormat = new SimpleDateFormat("EEE MMM dd");
-            return shortenedDateFormat.format(dateInMillis);
+            return shortenedDateFormat.format(dateInMsec);
         }
     }
 
@@ -162,15 +164,16 @@ public class Utility {
      * E.g "today", "tomorrow", "wednesday".
      *
      * @param context Context to use for resource localization
-     * @param dateInMillis The date in milliseconds
+     * @param dateInSeconds The date in seconds
      * @return
      */
-    public static String getDayName(Context context, long dateInMillis) {
+    public static String getDayName(Context context, long dateInSeconds) {
         // If the date is today, return the localized version of "Today" instead of the actual
         // day name.
 
         Time t = new Time();
         t.setToNow();
+        long dateInMillis = TimeUnit.SECONDS.toMillis(dateInSeconds);
         int julianDay = Time.getJulianDay(dateInMillis, t.gmtoff);
         int currentJulianDay = Time.getJulianDay(System.currentTimeMillis(), t.gmtoff);
         if (julianDay == currentJulianDay) {

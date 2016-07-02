@@ -159,18 +159,18 @@ public class WeatherDbHelper extends SQLiteOpenHelper {
     }
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    public static void printTable(Cursor cursor) {
+    public static void printCursor(Cursor cursor) {
         boolean moveSucceeded = false;
         int columnCount = cursor.getColumnCount();
         int rowCount = cursor.getCount();
-        Log.i(TAG, "printTable()"
+        Log.d(TAG, "printCursor()"
                         +"\t -- columnCount: "+columnCount
                         +"\t -- rowCount: "+rowCount
         );
         if (cursor.isBeforeFirst() || cursor.isAfterLast()){
             cursor.moveToFirst();
         }
-        StringBuilder rowAsString = new StringBuilder("printTable():");
+        StringBuilder rowAsString = new StringBuilder("printCursor():");
         for (int j=0; j<rowCount; j++) {
             rowAsString.append("\n");
             for (int i = 0; i < columnCount; i++) {
@@ -203,7 +203,7 @@ public class WeatherDbHelper extends SQLiteOpenHelper {
                 }
             }
         }
-        Log.i(TAG, rowAsString.toString());
+        Log.v(TAG, rowAsString.toString());
     }
 
     /**

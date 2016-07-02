@@ -1,5 +1,6 @@
 package com.example.android.sunshine.app;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -7,6 +8,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.CursorLoader;
@@ -24,6 +26,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.android.sunshine.app.data.WeatherContract;
+import com.example.android.sunshine.app.data.WeatherDbHelper;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -34,6 +39,9 @@ public class DetailFragment
     private static final String LOG_TAG = DetailFragment.class.getSimpleName();
 
     private static final String FORECAST_SHARE_HASHTAG = " #SunshineApp";
+    public static final String ID_TAG = DetailFragment.class.getCanonicalName() + ".id_tag";
+    private static final String ARG_LOCATION = DetailFragment.class.getCanonicalName() + ".arg_location";
+    private static final String ARG_DATE = DetailFragment.class.getCanonicalName() + ".arg_date";
     private final int LOADER_ID = hashCode();
     public static final String[] DETAILS_COLUMNS = {
             // In this case the id needs to be fully qualified with a table name, since
@@ -79,16 +87,54 @@ public class DetailFragment
         setHasOptionsMenu(true);
     }
 
+    public static void attach(FragmentActivity activity, String location, long dateInSec) {
+        DetailFragment detailFragment = new DetailFragment();
+        Bundle fragmentArguments = new Bundle();
+        fragmentArguments.putString(ARG_LOCATION, location);
+        fragmentArguments.putLong(ARG_DATE, dateInSec);
+        detailFragment.setArguments(fragmentArguments);
+        activity.getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.weather_detail_container, detailFragment, ID_TAG)
+                .commit();
+    }
+
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        mDetailsUri = parseIntent(activity.getIntent());
+        Log.i(LOG_TAG, "onAttach()"
+            +"\t -- mDetailsUri: "+mDetailsUri
+        );
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        Log.i(LOG_TAG, "onCreateView()");
 
         View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
 
         // The detail Activity called via intent.  Inspect the intent for forecast data.
-        mDetailsUri = parseIntent(getActivity().getIntent());
 //            mDetailTextView = (TextView) rootView.findViewById(R.id.detail_text);
         mViewHolder = new ViewHolder(rootView);
+
+        if (mDetailsUri == null){
+            String locationSetting;
+            if (getArguments().containsKey(ARG_LOCATION)){
+                locationSetting = getArguments().getString(ARG_LOCATION);
+            } else {
+                locationSetting = Utility.getPreferredLocation(getActivity());
+            }
+            long dateInSec;
+            if (getArguments().containsKey(ARG_DATE)){
+                dateInSec = getArguments().getLong(ARG_DATE);
+            } else {
+                dateInSec = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis());
+            }
+            mDetailsUri =
+                    WeatherContract.WeatherEntry.buildWeatherLocationWithDate(locationSetting, dateInSec);
+        }
+        getLoaderManager().initLoader(LOADER_ID, null, this);
 
         return rootView;
     }
@@ -102,8 +148,8 @@ public class DetailFragment
      */
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        Log.i(LOG_TAG, "onActivityCreated()");
         super.onActivityCreated(savedInstanceState);
-        getLoaderManager().initLoader(LOADER_ID, null, this);
     }
 
     @Override
@@ -170,6 +216,7 @@ public class DetailFragment
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+//        WeatherDbHelper.printCursor(data);
         mForecastStr = convertCursorRowToDetailsFormat(data);
         mViewHolder.updateViewHolder(data, this.getActivity());
 //            mDetailTextView.setText(mForecastStr);

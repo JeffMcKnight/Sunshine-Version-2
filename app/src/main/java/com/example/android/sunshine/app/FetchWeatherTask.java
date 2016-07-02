@@ -30,6 +30,8 @@ import android.widget.ArrayAdapter;
 
 import com.example.android.sunshine.app.data.WeatherContract;
 import com.example.android.sunshine.app.data.WeatherContract.WeatherEntry;
+import com.example.android.sunshine.app.data.WeatherDbHelper;
+import com.example.android.sunshine.app.data.WeatherProvider;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -45,6 +47,7 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Vector;
+import java.util.concurrent.TimeUnit;
 
 public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
 
@@ -240,7 +243,8 @@ public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
 
             for(int i = 0; i < weatherArray.length(); i++) {
                 // These are the values that will be collected.
-                long dateTime;
+                /** The date-time in seconds */
+                long dateTimeSec;
                 double pressure;
                 int humidity;
                 double windSpeed;
@@ -256,7 +260,9 @@ public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
                 JSONObject dayForecast = weatherArray.getJSONObject(i);
 
                 // Cheating to convert this to UTC time, which is what we want anyhow
-                dateTime = dayTime.setJulianDay(julianStartDay+i);
+                long dateTimeMsec = dayTime.setJulianDay(julianStartDay + i);
+                /** Convert time unit because {@link android.database.sqlite.SQLiteDatabase} stores date as seconds */
+                dateTimeSec = TimeUnit.MILLISECONDS.toSeconds(dateTimeMsec);
 
                 pressure = dayForecast.getDouble(OWM_PRESSURE);
                 humidity = dayForecast.getInt(OWM_HUMIDITY);
@@ -279,7 +285,7 @@ public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
                 ContentValues weatherValues = new ContentValues();
 
                 weatherValues.put(WeatherEntry.COLUMN_LOC_KEY, locationId);
-                weatherValues.put(WeatherEntry.COLUMN_DATE, dateTime);
+                weatherValues.put(WeatherEntry.COLUMN_DATE, dateTimeSec);
                 weatherValues.put(WeatherEntry.COLUMN_HUMIDITY, humidity);
                 weatherValues.put(WeatherEntry.COLUMN_PRESSURE, pressure);
                 weatherValues.put(WeatherEntry.COLUMN_WIND_SPEED, windSpeed);
@@ -289,6 +295,10 @@ public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
                 weatherValues.put(WeatherEntry.COLUMN_SHORT_DESC, description);
                 weatherValues.put(WeatherEntry.COLUMN_WEATHER_ID, weatherId);
 
+                Log.d(LOG_TAG, "getWeatherDataFromJson()"
+                        + "\t -- i: " + i
+                        + "\t -- weatherValues: " + weatherValues
+                );
                 cVVector.add(weatherValues);
             }
 
@@ -304,34 +314,8 @@ public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
                 mContext.getContentResolver().bulkInsert(WeatherEntry.CONTENT_URI, contentValues);
             }
 
-            // Sort order:  Ascending, by date.
-            String sortOrder = WeatherEntry.COLUMN_DATE + " ASC";
-//            FIXME: how is buildWeatherLocationWithStartDate supposed to work? all weather forecasts with specified date and later?
-            Uri weatherForLocationUri =
-                    WeatherEntry.buildWeatherLocationWithStartDate(locationSetting, System.currentTimeMillis());
-//                    WeatherEntry.buildWeatherLocation(locationSetting);
+            displayTable(locationSetting);
 
-            // Students: Uncomment the next lines to display what what you stored in the bulkInsert
-
-            Cursor cur = mContext.getContentResolver().query(weatherForLocationUri,
-                    null, null, null, sortOrder);
-
-            Log.i(LOG_TAG, "getWeatherDataFromJson()"
-                        +"\t -- cur.getCount(): "+cur.getCount()
-            );
-            cVVector = new Vector<ContentValues>(cur.getCount());
-            if ( cur.moveToFirst() ) {
-                do {
-                    ContentValues cv = new ContentValues();
-                    DatabaseUtils.cursorRowToContentValues(cur, cv);
-                    Log.i(LOG_TAG, "getWeatherDataFromJson()"
-                                    + "\t -- cv: " + cv
-                    );
-                    cVVector.add(cv);
-                } while (cur.moveToNext());
-            }
-
-            Log.d(LOG_TAG, "FetchWeatherTask Complete. " + cVVector.size() + " Rows Inserted");
 
 //            String[] resultStrs = convertContentValuesToUXFormat(cVVector);
             String[] resultStrs = null;
@@ -344,9 +328,46 @@ public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
         return null;
     }
 
+    /**
+     * Debugging tool to display
+     * @param locationSetting
+     */
+    private void displayTable(String locationSetting) {
+        Vector<ContentValues> cVVector;// Sort order:  Ascending, by date.
+        String sortOrder = WeatherEntry.COLUMN_DATE + " ASC";
+//            FIXME: how is buildWeatherLocationWithStartDate supposed to work? all weather forecasts with specified date and later?
+        Uri weatherForLocationUri =
+                WeatherEntry.buildWeatherLocationWithStartDate(locationSetting, System.currentTimeMillis());
+//                    WeatherEntry.buildWeatherLocation(locationSetting);
+
+        // Students: Uncomment the next lines to display what what you stored in the bulkInsert
+
+        Cursor cur = mContext.getContentResolver().query(weatherForLocationUri,
+                null, null, null, sortOrder);
+
+        Log.i(LOG_TAG, "getWeatherDataFromJson()"
+                    +"\t -- cur.getCount(): "+cur.getCount()
+        );
+        cVVector = new Vector<ContentValues>(cur.getCount());
+        if ( cur.moveToFirst() ) {
+            do {
+                ContentValues cv = new ContentValues();
+                DatabaseUtils.cursorRowToContentValues(cur, cv);
+                Log.i(LOG_TAG, "getWeatherDataFromJson()"
+                                + "\t -- cv: " + cv
+                );
+                cVVector.add(cv);
+            } while (cur.moveToNext());
+        }
+
+        Log.d(LOG_TAG, "FetchWeatherTask Complete. " + cVVector.size() + " Rows Inserted");
+    }
+
     @Override
     protected String[] doInBackground(String... params) {
-        Log.i(LOG_TAG, "doInBackground()");
+        Log.i(LOG_TAG, "doInBackground()"
+            +"\t -- currentThread(): "+Thread.currentThread().getName()
+        );
 
         // If there's no zip code, there's nothing to look up.  Verify size of params.
         if (params.length == 0) {
@@ -405,6 +426,9 @@ public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
             StringBuffer buffer = new StringBuffer();
             if (inputStream == null) {
                 // Nothing to do.
+                Log.w(LOG_TAG, "doInBackground()"
+                        +"\t *** inputStream: "+inputStream
+                );
                 return null;
             }
             reader = new BufferedReader(new InputStreamReader(inputStream));
@@ -417,8 +441,8 @@ public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
                 buffer.append(line + "\n");
             }
             Log.i(LOG_TAG, "doInBackground()"
-                            +"\n\t line: "+line
-                            +"\n\t buffer: "+buffer
+                            +"\n\t -- line: "+line
+                            +"\n\t -- buffer: "+buffer
             );
 
             if (buffer.length() == 0) {
@@ -461,6 +485,7 @@ public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
 
     @Override
     protected void onPostExecute(String[] result) {
+        Log.i(LOG_TAG, "");
 //        TODO: load result into ContentProvider
 //        if (result != null && mForecastAdapter != null) {
 //            mForecastAdapter.clear();

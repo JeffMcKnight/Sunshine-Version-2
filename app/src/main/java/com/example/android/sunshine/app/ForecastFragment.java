@@ -15,6 +15,7 @@
  */
 package com.example.android.sunshine.app;
 
+import android.app.Activity;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
@@ -47,8 +48,17 @@ public class ForecastFragment
     private final int LOADER_ID = this.hashCode();
     private ForecastAdapter mForecastAdapter;
     private ListView mListView;
+    private Listener mListener;
 
     public ForecastFragment() {
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        if (activity instanceof Listener){
+            mListener = (Listener) activity;
+        }
     }
 
     @Override
@@ -57,6 +67,7 @@ public class ForecastFragment
         Log.i(TAG, "onCreate()");
         // Add this line in order for this fragment to handle menu events.
         setHasOptionsMenu(true);
+        updateWeather();
     }
 
     @Override
@@ -111,8 +122,10 @@ public class ForecastFragment
                 Cursor cursor = (Cursor) adapterView.getItemAtPosition(position);
                 if (cursor != null) {
                     String locationSetting = Utility.getPreferredLocation(getActivity());
-                    long dateMsec = cursor.getLong(WeatherContract.COL_WEATHER_DATE);
-                    DetailActivity.launch(getActivity(), locationSetting, dateMsec);
+                    long dateInSec = cursor.getLong(WeatherContract.COL_WEATHER_DATE);
+                    if (mListener != null){
+                        mListener.onListItemClick(locationSetting, dateInSec);
+                    }
                 }
             }
 
@@ -130,7 +143,14 @@ public class ForecastFragment
         getLoaderManager().initLoader(LOADER_ID, args, this);
     }
 
+    @Override
+    public void onDetach() {
+        mListener = null;
+        super.onDetach();
+    }
+
     private void updateWeather() {
+        Log.i(TAG, "updateWeather()");
         FetchWeatherTask weatherTask = new FetchWeatherTask(getActivity());
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         String location = prefs.getString(getString(R.string.pref_location_key),
@@ -175,7 +195,7 @@ public class ForecastFragment
                         + "\n\t -- mListView: " + mListView
         );
         mForecastAdapter.swapCursor(data);
-//        WeatherDbHelper.printTable(data);
+//        WeatherDbHelper.printCursor(data);
 //        mForecastAdapter.notifyDataSetChanged();
 
 //        mListView.setAdapter(mForecastAdapter);
@@ -212,6 +232,10 @@ public class ForecastFragment
     public void onLocationChanged(){
         updateWeather();
         getLoaderManager().restartLoader(LOADER_ID, null, this);
+    }
+
+    public interface Listener {
+        void onListItemClick(String locationSetting, long dateInSec);
     }
 
     //    public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {

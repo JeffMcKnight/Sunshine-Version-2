@@ -24,6 +24,7 @@ import android.util.Log;
 
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Defines table and column names for the weather database.
@@ -68,15 +69,27 @@ public class WeatherContract {
     public static final int COL_WEATHER_CONDITION_ID = 6;
     public static final int COL_COORD_LAT = 7;
     public static final int COL_COORD_LONG = 8;
+    private static final String TAG = WeatherContract.class.getSimpleName();
 
-    // To make it easy to query for the exact date, we normalize all dates that go into
-    // the database to the start of the the Julian day at UTC.
-    public static long normalizeDate(long startDate) {
+
+    /**
+     // To make it easy to query for the exact date, we normalize all dates that go into
+     // the database to the start of the the Julian day at UTC.
+     *
+     * @param unnormallizedDateSec the unnormalized timedate stamp, in seconds
+     * @return the normalized timedate stamp, in seconds
+     */
+    public static long normalizeDate(long unnormallizedDateSec) {
         // normalize the start date to the beginning of the (UTC) day
         Time time = new Time();
-        time.set(startDate);
-        int julianDay = Time.getJulianDay(startDate, time.gmtoff);
-        return time.setJulianDay(julianDay);
+        /** Set time to current time so {@link Time#gmtoff} is correct */
+        time.setToNow();
+        /** {@link Time} wants time in milliseconds, so convert from seconds */
+        long unnormallizedDateMsec = TimeUnit.SECONDS.toMillis(unnormallizedDateSec);
+        int julianDay = Time.getJulianDay(unnormallizedDateMsec, time.gmtoff);
+        long normalizedDateMsec = time.setJulianDay(julianDay);
+        /** {@link android.database.sqlite.SQLiteDatabase} wants time in seconds, so convert back from msec */
+        return TimeUnit.MILLISECONDS.toSeconds(normalizedDateMsec);
     }
 
     /*
@@ -228,11 +241,14 @@ public class WeatherContract {
          * TODO: convert or format timeMillis (or maybe it's ok as is?)
          *
          * @param location the location we want to query the database for
-         * @param timeMillis  the time in msec of the start of the date range of forecasts we want
+         * @param timeMillis  the time in msec of the start of the date range of forecasts we want;
+         *                    convert to seconds, which is the standard format for SQLite
          * @return
          */
         public static Uri buildWeatherLocationWithStartDate(String location, long timeMillis) {
-            Uri uri = buildWeatherLocation(location).buildUpon().appendPath(String.valueOf(timeMillis))
+            Uri uri = buildWeatherLocation(location)
+                    .buildUpon()
+                    .appendPath(String.valueOf(TimeUnit.MILLISECONDS.toSeconds(timeMillis)))
                     .build();
             Log.i(TAG, "buildWeatherLocationWithStartDate()"
                 +"\t -- uri.toString(): "+uri.toString()
@@ -289,11 +305,11 @@ public class WeatherContract {
          * Do we need this? Seems to duplicate {@link #buildWeatherLocationWithStartDate(String, long)}
          * TODO: convert or format the data parameter (or maybe it's ok as is?)
          * @param location
-         * @param date
+         * @param dateInSec
          * @return
          */
-        public static Uri buildWeatherLocationWithDate(String location, long date) {
-            return buildWeatherLocation(location).buildUpon().appendPath(String.valueOf(date)).build();
+        public static Uri buildWeatherLocationWithDate(String location, long dateInSec) {
+            return buildWeatherLocation(location).buildUpon().appendPath(String.valueOf(dateInSec)).build();
         }
 
         /**

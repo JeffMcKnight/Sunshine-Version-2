@@ -15,34 +15,48 @@
  */
 package com.example.android.sunshine.app;
 
-import android.app.Fragment;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
-public class MainActivity extends ActionBarActivity {
+import java.util.concurrent.TimeUnit;
+
+public class MainActivity extends ActionBarActivity implements ForecastFragment.Listener {
 
     private final String LOG_TAG = MainActivity.class.getSimpleName();
     private final String FORECASTFRAGMENT_TAG = MainActivity.class.getName() + ".ForecastFragment";
     private String mLocation;
+    private boolean mTwoPane;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, new ForecastFragment(), FORECASTFRAGMENT_TAG)
-                    .commit();
-        }
         // Retrieve the location preference
         mLocation = Utility.getPreferredLocation(this);
+        View detailContainer = findViewById(R.id.weather_detail_container);
+        Log.i(LOG_TAG, "onCreate()"
+            +"\t -- detailContainer: "+detailContainer
+        );
+        if (detailContainer !=  null){
+            mTwoPane = true;
+            if (savedInstanceState == null){
+                /** Show forecast details for current day */
+                DetailFragment.attach(
+                        this,
+                        mLocation,
+                        TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())
+                );
+            }
+
+        } else {
+            mTwoPane = false;
+        }
     }
 
     @Override
@@ -77,7 +91,7 @@ public class MainActivity extends ActionBarActivity {
         super.onResume();
         if (mLocation != Utility.getPreferredLocation(this)){
             ForecastFragment forecastFragment
-                    = (ForecastFragment) getSupportFragmentManager().findFragmentByTag(FORECASTFRAGMENT_TAG);
+                    = (ForecastFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_forecast);
             forecastFragment.onLocationChanged();
             mLocation = Utility.getPreferredLocation(this);
         }
@@ -102,4 +116,24 @@ public class MainActivity extends ActionBarActivity {
             Log.d(LOG_TAG, "Couldn't call " + mLocation + ", no receiving apps installed!");
         }
     }
+
+    /**
+     *
+     * @param locationSetting
+     * @param dateInSec
+     */
+    @Override
+    public void onListItemClick(String locationSetting, long dateInSec) {
+        Log.i(LOG_TAG, "onListItemClick()"
+                +"\t -- mTwoPane: "+mTwoPane
+                +"\t -- locationSetting: "+locationSetting
+                +"\t -- dateInSec: "+dateInSec
+        );
+        if (mTwoPane){
+            DetailFragment.attach(this, locationSetting, dateInSec);
+        } else {
+            DetailActivity.launch(this, locationSetting, dateInSec);
+        }
+    }
+
 }
