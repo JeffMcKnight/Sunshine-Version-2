@@ -346,12 +346,12 @@ public class DetailFragment
                 mDateView.setText(Utility.formatDate(data.getLong(DetailFragment.COL_WEATHER_DATE)));
                 boolean isMetric = Utility.isMetric(context);
                 mMaxTempView.setText(Utility.formatTemperature(
-                        data.getLong(DetailFragment.COL_WEATHER_MAX_TEMP),
+                        data.getDouble(DetailFragment.COL_WEATHER_MAX_TEMP),
                         isMetric,
                         context
                 ));
                 mMinTempView.setText(Utility.formatTemperature(
-                        data.getLong(DetailFragment.COL_WEATHER_MIN_TEMP),
+                        data.getDouble(DetailFragment.COL_WEATHER_MIN_TEMP),
                         isMetric,
                         context
                 ));
