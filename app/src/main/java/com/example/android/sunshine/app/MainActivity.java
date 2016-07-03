@@ -18,19 +18,17 @@ package com.example.android.sunshine.app;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class MainActivity
         extends ActionBarActivity
-        implements ForecastFragment.Listener, FetchWeatherTask.Listener {
+        implements ForecastFragment.Listener {
 
     private final String LOG_TAG = MainActivity.class.getSimpleName();
     private final String FORECASTFRAGMENT_TAG = MainActivity.class.getName() + ".ForecastFragment";
@@ -140,16 +138,4 @@ public class MainActivity
         }
     }
 
-    /**
-     * Notify any {@link Fragment} that is listening for weather updates
-     */
-    @Override
-    public void onWeatherUpdate() {
-        List<Fragment> fragmentList = getSupportFragmentManager().getFragments();
-        for (Fragment eachFragment : fragmentList){
-            if (eachFragment instanceof FetchWeatherTask.Listener){
-                ((FetchWeatherTask.Listener) eachFragment).onWeatherUpdate();
-            }
-        }
-    }
 }

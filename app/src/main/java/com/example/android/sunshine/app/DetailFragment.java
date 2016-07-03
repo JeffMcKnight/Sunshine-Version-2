@@ -3,9 +3,11 @@ package com.example.android.sunshine.app;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.database.ContentObserver;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -26,7 +28,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.android.sunshine.app.data.WeatherContract;
-import com.example.android.sunshine.app.data.WeatherDbHelper;
 
 import java.util.concurrent.TimeUnit;
 
@@ -35,7 +36,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class DetailFragment
         extends Fragment
-        implements LoaderManager.LoaderCallbacks<Cursor>, FetchWeatherTask.Listener {
+        implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private static final String LOG_TAG = DetailFragment.class.getSimpleName();
 
@@ -83,6 +84,7 @@ public class DetailFragment
     private Uri mDetailsUri;
     private ShareActionProvider mShareActionProvider;
     private ViewHolder mViewHolder;
+    private ContentObserver mContentObserver;
 
     public DetailFragment() {
         setHasOptionsMenu(true);
@@ -113,6 +115,18 @@ public class DetailFragment
         Log.i(LOG_TAG, "onAttach()"
             +"\t -- mDetailsUri: "+mDetailsUri
         );
+        mContentObserver = new ContentObserver(new Handler()) {
+            @Override
+            public void onChange(boolean selfChange) {
+                Log.i(LOG_TAG, "onChange() -- selfChange: "+selfChange);
+                super.onChange(selfChange);
+                restartCursorLoader();
+            }
+        };
+        activity.getContentResolver().registerContentObserver(
+                WeatherContract.WeatherEntry.CONTENT_URI,
+                false,
+                mContentObserver);
         getLoaderManager().initLoader(LOADER_ID, null, this);
     }
 
@@ -157,6 +171,16 @@ public class DetailFragment
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         Log.i(LOG_TAG, "onActivityCreated()");
         super.onActivityCreated(savedInstanceState);
+    }
+
+    @Override
+    public void onDetach() {
+        Activity activity = getActivity();
+        if (activity != null){
+            activity.getContentResolver().unregisterContentObserver(mContentObserver);
+        }
+
+        super.onDetach();
     }
 
     @Override
@@ -274,8 +298,7 @@ public class DetailFragment
     /**
      * Initialize or restart the {@link CursorLoader} so we can display the updated weather data
      */
-    @Override
-    public void onWeatherUpdate() {
+    public void restartCursorLoader() {
         if (getLoaderManager().getLoader(LOADER_ID) == null){
             getLoaderManager().initLoader(LOADER_ID, null, this);
         } else {

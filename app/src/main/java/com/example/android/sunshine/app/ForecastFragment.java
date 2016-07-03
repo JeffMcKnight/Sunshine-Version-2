@@ -49,7 +49,6 @@ public class ForecastFragment
     private ForecastAdapter mForecastAdapter;
     private ListView mListView;
     private Listener mListener;
-    private FetchWeatherTask.Listener mWeatherUpdateListener;
 
     public ForecastFragment() {
     }
@@ -59,9 +58,6 @@ public class ForecastFragment
         super.onAttach(activity);
         if (activity instanceof Listener){
             mListener = (Listener) activity;
-        }
-        if (activity instanceof FetchWeatherTask.Listener){
-            mWeatherUpdateListener = (FetchWeatherTask.Listener) activity;
         }
     }
 
@@ -155,7 +151,7 @@ public class ForecastFragment
 
     private void updateWeather() {
         Log.i(TAG, "updateWeather()");
-        FetchWeatherTask weatherTask = new FetchWeatherTask(getActivity(), mWeatherUpdateListener);
+        FetchWeatherTask weatherTask = new FetchWeatherTask(getActivity());
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         String location = prefs.getString(getString(R.string.pref_location_key),
                 getString(R.string.pref_location_default));

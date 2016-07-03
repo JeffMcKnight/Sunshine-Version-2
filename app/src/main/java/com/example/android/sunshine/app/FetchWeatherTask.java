@@ -49,12 +49,10 @@ public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
 
 //    private ForecastAdapter mForecastAdapter;
     private final Context mContext;
-    private FetchWeatherTask.Listener mListener;
 
-    public FetchWeatherTask(Context context, @Nullable Listener listener) {
+    public FetchWeatherTask(Context context) {
         mContext = context;
 //        mForecastAdapter = forecastAdapter;
-        mListener = listener;
     }
 
     private boolean DEBUG = true;
@@ -482,9 +480,6 @@ public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
     @Override
     protected void onPostExecute(String[] result) {
         Log.i(LOG_TAG, "onPostExecute()");
-        if (mListener != null){
-            mListener.onWeatherUpdate();
-        }
 //        TODO: load result into ContentProvider
 //        if (result != null && mForecastAdapter != null) {
 //            mForecastAdapter.clear();
@@ -495,7 +490,4 @@ public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
 //        }
     }
 
-    public interface Listener {
-        void onWeatherUpdate();
-    }
 }
