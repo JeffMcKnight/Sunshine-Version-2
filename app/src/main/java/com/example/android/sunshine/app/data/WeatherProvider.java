@@ -100,16 +100,24 @@ public class WeatherProvider extends ContentProvider {
         );
     }
 
+    /**
+     *
+     * @param uri
+     * @param projection
+     * @param sortOrder
+     * @return
+     */
     private Cursor getWeatherByLocationSettingAndDate(Uri uri, String[] projection, String sortOrder) {
         String locationSetting = WeatherContract.WeatherEntry.getLocationSettingFromUri(uri);
         long date = WeatherContract.WeatherEntry.getDateFromUri(uri);
+        long normalizedDate = WeatherContract.normalizeDate(date);
 
         SQLiteDatabase database = mOpenHelper.getReadableDatabase();
         Cursor dumpAll = sWeatherByLocationSettingQueryBuilder.query(database, null, null, null, null, null, null);
         Log.d(TAG, "getWeatherByLocationSettingAndDate()"
                 + "\n\t -- uri: " + uri
                 + "\n\t -- locationSetting: " + locationSetting
-                + "\t -- date: " + date
+                + "\t -- normalizedDate: " + normalizedDate
                 + "\n\t -- sWeatherByLocationSettingQueryBuilder.getTables(): " + sWeatherByLocationSettingQueryBuilder.getTables()
                 +"\n\t -- dumpAll.getCount(): " + dumpAll.getCount()
                 +"\t -- dumpAll.getColumnCount(): " + dumpAll.getColumnCount()
@@ -118,7 +126,7 @@ public class WeatherProvider extends ContentProvider {
         return sWeatherByLocationSettingQueryBuilder.query(database,
                 projection,
                 sLocationSettingAndDaySelection,
-                new String[]{locationSetting, Long.toString(date)},
+                new String[]{locationSetting, Long.toString(normalizedDate)},
                 null,
                 null,
                 sortOrder
@@ -208,7 +216,10 @@ public class WeatherProvider extends ContentProvider {
     }
 
     @Override
-    public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs,
+    public Cursor query(Uri uri,
+                        String[] projection,
+                        String selection,
+                        String[] selectionArgs,
                         String sortOrder) {
 //        printTable(WeatherContract.WeatherEntry.TABLE_NAME);
 //        printTable(WeatherContract.LocationEntry.TABLE_NAME);

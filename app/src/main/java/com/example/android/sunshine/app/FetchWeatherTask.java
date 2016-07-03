@@ -18,20 +18,16 @@ package com.example.android.sunshine.app;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.text.format.Time;
 import android.util.Log;
-import android.widget.ArrayAdapter;
 
 import com.example.android.sunshine.app.data.WeatherContract;
 import com.example.android.sunshine.app.data.WeatherContract.WeatherEntry;
-import com.example.android.sunshine.app.data.WeatherDbHelper;
-import com.example.android.sunshine.app.data.WeatherProvider;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -43,9 +39,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.Vector;
 import java.util.concurrent.TimeUnit;
 
@@ -55,10 +49,12 @@ public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
 
 //    private ForecastAdapter mForecastAdapter;
     private final Context mContext;
+    private FetchWeatherTask.Listener mListener;
 
-    public FetchWeatherTask(Context context) {
+    public FetchWeatherTask(Context context, @Nullable Listener listener) {
         mContext = context;
 //        mForecastAdapter = forecastAdapter;
+        mListener = listener;
     }
 
     private boolean DEBUG = true;
@@ -485,7 +481,10 @@ public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
 
     @Override
     protected void onPostExecute(String[] result) {
-        Log.i(LOG_TAG, "");
+        Log.i(LOG_TAG, "onPostExecute()");
+        if (mListener != null){
+            mListener.onWeatherUpdate();
+        }
 //        TODO: load result into ContentProvider
 //        if (result != null && mForecastAdapter != null) {
 //            mForecastAdapter.clear();
@@ -496,4 +495,7 @@ public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
 //        }
     }
 
+    public interface Listener {
+        void onWeatherUpdate();
+    }
 }

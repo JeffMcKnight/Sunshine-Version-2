@@ -34,7 +34,8 @@ import java.util.concurrent.TimeUnit;
  * A placeholder fragment containing a simple view.
  */
 public class DetailFragment
-        extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+        extends Fragment
+        implements LoaderManager.LoaderCallbacks<Cursor>, FetchWeatherTask.Listener {
 
     private static final String LOG_TAG = DetailFragment.class.getSimpleName();
 
@@ -102,10 +103,33 @@ public class DetailFragment
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        mDetailsUri = parseIntent(activity.getIntent());
+
+        Intent intent = activity.getIntent();
+        if (intent != null && intent.getData() != null) {
+            mDetailsUri = intent.getData();
+        } else {
+            mDetailsUri = parseArguments(getArguments());
+        }
         Log.i(LOG_TAG, "onAttach()"
             +"\t -- mDetailsUri: "+mDetailsUri
         );
+        getLoaderManager().initLoader(LOADER_ID, null, this);
+    }
+
+    public Uri parseArguments(Bundle fragmentArguments) {
+        String locationSetting;
+        if (fragmentArguments.containsKey(ARG_LOCATION)){
+            locationSetting = fragmentArguments.getString(ARG_LOCATION);
+        } else {
+            locationSetting = Utility.getPreferredLocation(getActivity());
+        }
+        long dateInSec;
+        if (fragmentArguments.containsKey(ARG_DATE)){
+            dateInSec = fragmentArguments.getLong(ARG_DATE);
+        } else {
+            dateInSec = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis());
+        }
+        return WeatherContract.WeatherEntry.buildWeatherLocationWithDate(locationSetting, dateInSec);
     }
 
     @Override
@@ -118,23 +142,6 @@ public class DetailFragment
 //            mDetailTextView = (TextView) rootView.findViewById(R.id.detail_text);
         mViewHolder = new ViewHolder(rootView);
 
-        if (mDetailsUri == null){
-            String locationSetting;
-            if (getArguments().containsKey(ARG_LOCATION)){
-                locationSetting = getArguments().getString(ARG_LOCATION);
-            } else {
-                locationSetting = Utility.getPreferredLocation(getActivity());
-            }
-            long dateInSec;
-            if (getArguments().containsKey(ARG_DATE)){
-                dateInSec = getArguments().getLong(ARG_DATE);
-            } else {
-                dateInSec = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis());
-            }
-            mDetailsUri =
-                    WeatherContract.WeatherEntry.buildWeatherLocationWithDate(locationSetting, dateInSec);
-        }
-        getLoaderManager().initLoader(LOADER_ID, null, this);
 
         return rootView;
     }
@@ -260,7 +267,20 @@ public class DetailFragment
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
+        Log.i(LOG_TAG, "onLoaderReset()");
 
+    }
+
+    /**
+     * Initialize or restart the {@link CursorLoader} so we can display the updated weather data
+     */
+    @Override
+    public void onWeatherUpdate() {
+        if (getLoaderManager().getLoader(LOADER_ID) == null){
+            getLoaderManager().initLoader(LOADER_ID, null, this);
+        } else {
+            getLoaderManager().restartLoader(LOADER_ID, null, this);
+        }
     }
 
     public static class ViewHolder {
