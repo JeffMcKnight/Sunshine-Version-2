@@ -151,7 +151,7 @@ public class Utility {
                     getFormattedMonthDay(context, dateInMsec)));
         } else if ( julianDay < currentJulianDay + 7 ) {
             // If the input date is less than a week in the future, just return the day name.
-            return getDayName(context, dateInMsec);
+            return getDayName(context, dateInSeconds);
         } else {
             // Otherwise, use the form "Mon Jun 3"
             SimpleDateFormat shortenedDateFormat = new SimpleDateFormat("EEE MMM dd");

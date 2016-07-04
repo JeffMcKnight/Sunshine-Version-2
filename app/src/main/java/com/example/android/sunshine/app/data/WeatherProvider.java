@@ -375,6 +375,14 @@ public class WeatherProvider extends ContentProvider {
         }
     }
 
+    /**
+     * Delete the rows specified by the {@code selection} parameter, or delete all rows if the
+     * {@code selection} parameter is null
+     * @param uri
+     * @param selection
+     * @param selectionArgs
+     * @return
+     */
     @Override
     public int delete(@NonNull Uri uri, String selection, String[] selectionArgs) {
         int rowsDeleted = 0;

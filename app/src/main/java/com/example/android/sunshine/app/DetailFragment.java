@@ -299,7 +299,7 @@ public class DetailFragment
      * Initialize or restart the {@link CursorLoader} so we can display the updated weather data
      */
     public void restartCursorLoader() {
-        if (getLoaderManager().getLoader(LOADER_ID) == null){
+        if (getLoaderManager().getLoader(LOADER_ID) == null) {
             getLoaderManager().initLoader(LOADER_ID, null, this);
         } else {
             getLoaderManager().restartLoader(LOADER_ID, null, this);

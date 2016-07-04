@@ -305,6 +305,7 @@ public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
             );
             if ( cVVector.size() > 0 ) {
                 // Student: call bulkInsert to add the weatherEntries to the database here
+                mContext.getContentResolver().delete(WeatherEntry.CONTENT_URI, null, null);
                 mContext.getContentResolver().bulkInsert(WeatherEntry.CONTENT_URI, contentValues);
             }
 
