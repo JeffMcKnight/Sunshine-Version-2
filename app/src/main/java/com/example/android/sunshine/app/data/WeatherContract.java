@@ -22,8 +22,6 @@ import android.support.annotation.NonNull;
 import android.text.format.Time;
 import android.util.Log;
 
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -72,20 +70,18 @@ public class WeatherContract {
     private static final String TAG = WeatherContract.class.getSimpleName();
 
 
-    /**
-     // To make it easy to query for the exact date, we normalize all dates that go into
-     // the database to the start of the the Julian day at UTC.
+    /** To make it easy to query for the exact date, we normalize all dates that go into
+     * the database to the start of the the Julian day at UTC and convert to {@link TimeUnit#SECONDS},
+     * which is the standard date unit for {@link android.database.sqlite.SQLiteDatabase}.
      *
-     * @param unnormallizedDateSec the unnormalized timedate stamp, in seconds
+     * @param unnormallizedDateMsec
      * @return the normalized timedate stamp, in seconds
      */
-    public static long normalizeDate(long unnormallizedDateSec) {
+    public static long normalizeDate(long unnormallizedDateMsec) {
         // normalize the start date to the beginning of the (UTC) day
         Time time = new Time();
         /** Set time to current time so {@link Time#gmtoff} is correct */
         time.setToNow();
-        /** {@link Time} wants time in milliseconds, so convert from seconds */
-        long unnormallizedDateMsec = TimeUnit.SECONDS.toMillis(unnormallizedDateSec);
         int julianDay = Time.getJulianDay(unnormallizedDateMsec, time.gmtoff);
         long normalizedDateMsec = time.setJulianDay(julianDay);
         /** {@link android.database.sqlite.SQLiteDatabase} wants time in seconds, so convert back from msec */
@@ -248,7 +244,7 @@ public class WeatherContract {
         public static Uri buildWeatherLocationWithStartDate(String location, long timeMillis) {
             Uri uri = buildWeatherLocation(location)
                     .buildUpon()
-                    .appendPath(String.valueOf(TimeUnit.MILLISECONDS.toSeconds(timeMillis)))
+                    .appendPath(String.valueOf(timeMillis))
                     .build();
             Log.i(TAG, "buildWeatherLocationWithStartDate()"
                 +"\t -- uri.toString(): "+uri.toString()
@@ -311,7 +307,7 @@ public class WeatherContract {
         public static Uri buildWeatherLocationWithDate(String location, long dateInMsec) {
             return buildWeatherLocation(location)
                     .buildUpon()
-                    .appendPath(String.valueOf(TimeUnit.MILLISECONDS.toSeconds(dateInMsec))).build();
+                    .appendPath(String.valueOf(dateInMsec)).build();
         }
 
         /**

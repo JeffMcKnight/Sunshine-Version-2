@@ -238,7 +238,7 @@ public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
             for(int i = 0; i < weatherArray.length(); i++) {
                 // These are the values that will be collected.
                 /** The date-time in seconds */
-                long dateTimeSec;
+                long dateTimeMsec;
                 double pressure;
                 int humidity;
                 double windSpeed;
@@ -254,10 +254,7 @@ public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
                 JSONObject dayForecast = weatherArray.getJSONObject(i);
 
                 // Cheating to convert this to UTC time, which is what we want anyhow
-                long dateTimeMsec = dayTime.setJulianDay(julianStartDay + i);
-                /** Convert time unit because {@link android.database.sqlite.SQLiteDatabase} stores date as seconds */
-                dateTimeSec = TimeUnit.MILLISECONDS.toSeconds(dateTimeMsec);
-
+                dateTimeMsec = dayTime.setJulianDay(julianStartDay + i);
                 pressure = dayForecast.getDouble(OWM_PRESSURE);
                 humidity = dayForecast.getInt(OWM_HUMIDITY);
                 windSpeed = dayForecast.getDouble(OWM_WINDSPEED);
@@ -279,7 +276,7 @@ public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
                 ContentValues weatherValues = new ContentValues();
 
                 weatherValues.put(WeatherEntry.COLUMN_LOC_KEY, locationId);
-                weatherValues.put(WeatherEntry.COLUMN_DATE, dateTimeSec);
+                weatherValues.put(WeatherEntry.COLUMN_DATE, dateTimeMsec);
                 weatherValues.put(WeatherEntry.COLUMN_HUMIDITY, humidity);
                 weatherValues.put(WeatherEntry.COLUMN_PRESSURE, pressure);
                 weatherValues.put(WeatherEntry.COLUMN_WIND_SPEED, windSpeed);

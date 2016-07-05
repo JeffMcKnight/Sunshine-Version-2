@@ -112,8 +112,8 @@ public class WeatherProvider extends ContentProvider {
      */
     private Cursor getWeatherByLocationSettingAndDate(Uri uri, String[] projection, String sortOrder) {
         String locationSetting = WeatherContract.WeatherEntry.getLocationSettingFromUri(uri);
-        long date = WeatherContract.WeatherEntry.getDateFromUri(uri);
-        long normalizedDate = WeatherContract.normalizeDate(date);
+        long dateMsec = WeatherContract.WeatherEntry.getDateFromUri(uri);
+        long normalizedDate = WeatherContract.normalizeDate(dateMsec);
 
         SQLiteDatabase database = mOpenHelper.getReadableDatabase();
         Cursor dumpAll = sWeatherByLocationSettingQueryBuilder.query(database, null, null, null, null, null, null);
@@ -444,14 +444,14 @@ public class WeatherProvider extends ContentProvider {
     }
 
     /**
-     *
+     * Expects dates in milliseconds
      * @param values
      */
     private void normalizeDate(ContentValues values) {
         // normalize the date value
         if (values.containsKey(WeatherContract.WeatherEntry.COLUMN_DATE)) {
-            long dateValue = values.getAsLong(WeatherContract.WeatherEntry.COLUMN_DATE);
-            values.put(WeatherContract.WeatherEntry.COLUMN_DATE, WeatherContract.normalizeDate(dateValue));
+            long dateMsec = values.getAsLong(WeatherContract.WeatherEntry.COLUMN_DATE);
+            values.put(WeatherContract.WeatherEntry.COLUMN_DATE, WeatherContract.normalizeDate(dateMsec));
         }
     }
 
