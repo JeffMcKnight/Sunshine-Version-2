@@ -115,6 +115,10 @@ public class DetailFragment
         Log.i(LOG_TAG, "onAttach()"
             +"\t -- mDetailsUri: "+mDetailsUri
         );
+        /**
+         * Register a {@link ContentObserver} since the {@link DetailFragment} will usually load
+         * before {@link FetchWeatherTask} retrieves updated weather content.
+         */
         mContentObserver = new ContentObserver(new Handler()) {
             @Override
             public void onChange(boolean selfChange) {
