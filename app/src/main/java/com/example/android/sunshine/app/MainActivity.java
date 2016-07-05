@@ -52,10 +52,9 @@ public class MainActivity
                 DetailFragment.attach(
                         this,
                         mLocation,
-                        TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())
+                        System.currentTimeMillis()
                 );
             }
-
         } else {
             mTwoPane = false;
         }
@@ -122,19 +121,19 @@ public class MainActivity
     /**
      *
      * @param locationSetting
-     * @param dateInSec
+     * @param dateInMsec
      */
     @Override
-    public void onListItemClick(String locationSetting, long dateInSec) {
+    public void onListItemClick(String locationSetting, long dateInMsec) {
         Log.i(LOG_TAG, "onListItemClick()"
                 +"\t -- mTwoPane: "+mTwoPane
                 +"\t -- locationSetting: "+locationSetting
-                +"\t -- dateInSec: "+dateInSec
+                +"\t -- dateInMsec: "+dateInMsec
         );
         if (mTwoPane){
-            DetailFragment.attach(this, locationSetting, dateInSec);
+            DetailFragment.attach(this, locationSetting, dateInMsec);
         } else {
-            DetailActivity.launch(this, locationSetting, dateInSec);
+            DetailActivity.launch(this, locationSetting, dateInMsec);
         }
     }
 

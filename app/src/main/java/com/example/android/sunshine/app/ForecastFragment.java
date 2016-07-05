@@ -122,9 +122,9 @@ public class ForecastFragment
                 Cursor cursor = (Cursor) adapterView.getItemAtPosition(position);
                 if (cursor != null) {
                     String locationSetting = Utility.getPreferredLocation(getActivity());
-                    long dateInSec = cursor.getLong(WeatherContract.COL_WEATHER_DATE);
+                    long dateMsec = cursor.getLong(WeatherContract.COL_WEATHER_DATE);
                     if (mListener != null){
-                        mListener.onListItemClick(locationSetting, dateInSec);
+                        mListener.onListItemClick(locationSetting, dateMsec);
                     }
                 }
             }

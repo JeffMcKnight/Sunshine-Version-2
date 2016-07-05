@@ -20,11 +20,14 @@ import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
+import android.database.CursorWrapper;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.util.Log;
+
+import java.util.concurrent.TimeUnit;
 
 public class WeatherProvider extends ContentProvider {
 
@@ -229,22 +232,35 @@ public class WeatherProvider extends ContentProvider {
         switch (sUriMatcher.match(uri)) {
             // "weather/*/*"
             case WEATHER_WITH_LOCATION_AND_DATE: {
-                retCursor = getWeatherByLocationSettingAndDate(uri, projection, sortOrder);
+                Cursor rawCursor = getWeatherByLocationSettingAndDate(uri, projection, sortOrder);
+                retCursor = new TimeUnitConvertingCursor(rawCursor);
                 break;
             }
             // "weather/*"
             case WEATHER_WITH_LOCATION: {
-                retCursor = getWeatherByLocationSetting(uri, projection, sortOrder);
+                Cursor rawCursor = getWeatherByLocationSetting(uri, projection, sortOrder);
+                retCursor = new TimeUnitConvertingCursor(rawCursor);
                 break;
             }
             // "weather"
             case WEATHER: {
-                retCursor = getCursorForTable(WeatherContract.WeatherEntry.TABLE_NAME, projection, selection, selectionArgs, sortOrder);
+                Cursor rawCursor = getCursorForTable(
+                        WeatherContract.WeatherEntry.TABLE_NAME,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        sortOrder);
+                retCursor = new TimeUnitConvertingCursor(rawCursor);
                 break;
             }
             // "location"
             case LOCATION: {
-                retCursor = getCursorForTable(WeatherContract.LocationEntry.TABLE_NAME, projection, selection, selectionArgs, sortOrder);
+                retCursor = getCursorForTable(
+                        WeatherContract.LocationEntry.TABLE_NAME,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        sortOrder);
                 break;
             }
 
@@ -516,4 +532,37 @@ public class WeatherProvider extends ContentProvider {
         return sUriMatcher;
     }
 
+    /**
+     * Use {@link TimeUnitConvertingCursor} to wrap the {@link Cursor} returned by a query of the
+     * {@link com.example.android.sunshine.app.data.WeatherContract.WeatherEntry#TABLE_NAME} table
+     * in order to convert the {@link com.example.android.sunshine.app.data.WeatherContract.WeatherEntry#COLUMN_DATE }
+     * column from {@link TimeUnit#SECONDS} (which is the standard for date fields in a {@link SQLiteDatabase})
+     * to {@link TimeUnit#MILLISECONDS} (which we use everywhere else in the app).
+     */
+    private class TimeUnitConvertingCursor extends CursorWrapper {
+
+        /**
+         * Creates a cursor wrapper.
+         *
+         * @param cursor The underlying cursor to wrap.
+         */
+        public TimeUnitConvertingCursor(Cursor cursor) {
+            super(cursor);
+        }
+
+        /**
+         * Convert the {@link WeatherContract#COL_WEATHER_DATE} to {@link TimeUnit#MILLISECONDS}
+         * @param columnIndex
+         * @return
+         */
+        @Override
+        public long getLong(int columnIndex) {
+            if (columnIndex == WeatherContract.COL_WEATHER_DATE){
+                return TimeUnit.SECONDS.toMillis(super.getLong(columnIndex));
+            } else {
+                return super.getLong(columnIndex);
+            }
+        }
+
+    }
 }

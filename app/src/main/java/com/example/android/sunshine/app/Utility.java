@@ -60,12 +60,11 @@ public class Utility {
 
     /**
      *
-     * @param dateInSeconds
+     * @param dateInMsec
      * @return
      */
-    static String formatDate(long dateInSeconds) {
-        Date date = new Date(TimeUnit.SECONDS.toMillis(dateInSeconds));
-        return DateFormat.getDateInstance().format(date);
+    static String formatDate(long dateInMsec) {
+        return DateFormat.getDateInstance().format(dateInMsec);
     }
 
     /**
@@ -123,10 +122,10 @@ public class Utility {
      * to users.  As classy and polished a user experience as "20140102" is, we can do better.
      *
      * @param context Context to use for resource localization
-     * @param dateInSeconds The date in seconds
+     * @param dateInMsec
      * @return a user-friendly representation of the date.
      */
-    public static String getFriendlyDayString(Context context, long dateInSeconds) {
+    public static String getFriendlyDayString(Context context, long dateInMsec) {
         // The day string for forecast uses the following logic:
         // For today: "Today, June 8"
         // For tomorrow:  "Tomorrow"
@@ -136,7 +135,6 @@ public class Utility {
         Time time = new Time();
         time.setToNow();
         long currentTime = System.currentTimeMillis();
-        long dateInMsec = TimeUnit.SECONDS.toMillis(dateInSeconds);
         int julianDay = Time.getJulianDay(dateInMsec, time.gmtoff);
         int currentJulianDay = Time.getJulianDay(currentTime, time.gmtoff);
 
@@ -151,7 +149,7 @@ public class Utility {
                     getFormattedMonthDay(context, dateInMsec)));
         } else if ( julianDay < currentJulianDay + 7 ) {
             // If the input date is less than a week in the future, just return the day name.
-            return getDayName(context, dateInSeconds);
+            return getDayName(context, dateInMsec);
         } else {
             // Otherwise, use the form "Mon Jun 3"
             SimpleDateFormat shortenedDateFormat = new SimpleDateFormat("EEE MMM dd");
@@ -164,16 +162,15 @@ public class Utility {
      * E.g "today", "tomorrow", "wednesday".
      *
      * @param context Context to use for resource localization
-     * @param dateInSeconds The date in seconds
+     * @param dateInMillis
      * @return
      */
-    public static String getDayName(Context context, long dateInSeconds) {
+    public static String getDayName(Context context, long dateInMillis) {
         // If the date is today, return the localized version of "Today" instead of the actual
         // day name.
 
         Time t = new Time();
         t.setToNow();
-        long dateInMillis = TimeUnit.SECONDS.toMillis(dateInSeconds);
         int julianDay = Time.getJulianDay(dateInMillis, t.gmtoff);
         int currentJulianDay = Time.getJulianDay(System.currentTimeMillis(), t.gmtoff);
         if (julianDay == currentJulianDay) {

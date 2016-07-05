@@ -90,11 +90,11 @@ public class DetailFragment
         setHasOptionsMenu(true);
     }
 
-    public static void attach(FragmentActivity activity, String location, long dateInSec) {
+    public static void attach(FragmentActivity activity, String location, long dateInMsec) {
         DetailFragment detailFragment = new DetailFragment();
         Bundle fragmentArguments = new Bundle();
         fragmentArguments.putString(ARG_LOCATION, location);
-        fragmentArguments.putLong(ARG_DATE, dateInSec);
+        fragmentArguments.putLong(ARG_DATE, dateInMsec);
         detailFragment.setArguments(fragmentArguments);
         activity.getSupportFragmentManager()
                 .beginTransaction()
@@ -137,13 +137,13 @@ public class DetailFragment
         } else {
             locationSetting = Utility.getPreferredLocation(getActivity());
         }
-        long dateInSec;
+        long dateInMsec;
         if (fragmentArguments.containsKey(ARG_DATE)){
-            dateInSec = fragmentArguments.getLong(ARG_DATE);
+            dateInMsec = fragmentArguments.getLong(ARG_DATE);
         } else {
-            dateInSec = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis());
+            dateInMsec = System.currentTimeMillis();
         }
-        return WeatherContract.WeatherEntry.buildWeatherLocationWithDate(locationSetting, dateInSec);
+        return WeatherContract.WeatherEntry.buildWeatherLocationWithDate(locationSetting, dateInMsec);
     }
 
     @Override

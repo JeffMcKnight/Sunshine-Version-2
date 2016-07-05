@@ -305,11 +305,13 @@ public class WeatherContract {
          * Do we need this? Seems to duplicate {@link #buildWeatherLocationWithStartDate(String, long)}
          * TODO: convert or format the data parameter (or maybe it's ok as is?)
          * @param location
-         * @param dateInSec
+         * @param dateInMsec
          * @return
          */
-        public static Uri buildWeatherLocationWithDate(String location, long dateInSec) {
-            return buildWeatherLocation(location).buildUpon().appendPath(String.valueOf(dateInSec)).build();
+        public static Uri buildWeatherLocationWithDate(String location, long dateInMsec) {
+            return buildWeatherLocation(location)
+                    .buildUpon()
+                    .appendPath(String.valueOf(TimeUnit.MILLISECONDS.toSeconds(dateInMsec))).build();
         }
 
         /**
