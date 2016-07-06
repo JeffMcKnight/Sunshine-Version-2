@@ -25,6 +25,7 @@ import android.os.AsyncTask;
 import android.support.annotation.Nullable;
 import android.text.format.Time;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.example.android.sunshine.app.data.WeatherContract;
 import com.example.android.sunshine.app.data.WeatherContract.WeatherEntry;
@@ -43,7 +44,7 @@ import java.util.Arrays;
 import java.util.Vector;
 import java.util.concurrent.TimeUnit;
 
-public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
+public class FetchWeatherTask extends AsyncTask<String, String, String[]> {
 
     private final String LOG_TAG = FetchWeatherTask.class.getSimpleName();
 
@@ -443,12 +444,11 @@ public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
             }
             forecastJsonStr = buffer.toString();
         } catch (IOException e) {
-            Log.w(LOG_TAG, "doInBackground()"
-                            +"\t -- url: "+ url
-                            +"\n\t -- e.getMessage(): "+ e.getMessage()
-                            +"\n\t -- e: "+ e
-            );
-            Log.e(LOG_TAG, "Error ", e);
+            String errorLog = "doInBackground()"
+                    + "\n\t -- url: " + url
+                    + "\n\t -- e: " + e;
+            Log.e(LOG_TAG, errorLog, e);
+            publishProgress(errorLog);
             // If the code didn't successfully get the weather data, there's no point in attempting
             // to parse it.
             return null;
@@ -486,6 +486,11 @@ public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
 //            }
 //            // New data is back from the server.  Hooray!
 //        }
+    }
+
+    @Override
+    protected void onProgressUpdate(String... values) {
+        Toast.makeText(mContext, values[0], Toast.LENGTH_LONG).show();
     }
 
 }

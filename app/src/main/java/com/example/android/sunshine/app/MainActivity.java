@@ -18,13 +18,14 @@ package com.example.android.sunshine.app;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import java.util.concurrent.TimeUnit;
+import java.util.List;
 
 public class MainActivity
         extends ActionBarActivity
@@ -90,11 +91,15 @@ public class MainActivity
     @Override
     protected void onResume(){
         super.onResume();
-        if (mLocation != Utility.getPreferredLocation(this)){
-            ForecastFragment forecastFragment
-                    = (ForecastFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_forecast);
-            forecastFragment.onLocationChanged();
-            mLocation = Utility.getPreferredLocation(this);
+        String preferredLocation = Utility.getPreferredLocation(this);
+        if (null != preferredLocation && !preferredLocation.equals(mLocation)){
+            List<Fragment> fragmentList = getSupportFragmentManager().getFragments();
+            for (Fragment eachFragment : fragmentList){
+                if (eachFragment instanceof LocationPreferenceListener){
+                    ((LocationPreferenceListener) eachFragment).onLocationChanged(preferredLocation);
+                }
+            }
+            mLocation = preferredLocation;
         }
 
     }

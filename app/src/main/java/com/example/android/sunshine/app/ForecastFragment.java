@@ -17,9 +17,11 @@ package com.example.android.sunshine.app;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
+import android.database.ContentObserver;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
@@ -42,13 +44,14 @@ import com.example.android.sunshine.app.data.WeatherContract;
  */
 public class ForecastFragment
         extends Fragment
-        implements LoaderManager.LoaderCallbacks<Cursor> {
+        implements LoaderManager.LoaderCallbacks<Cursor>, LocationPreferenceListener {
 
     private static final String TAG = ForecastFragment.class.getSimpleName();
     private final int LOADER_ID = this.hashCode();
     private ForecastAdapter mForecastAdapter;
     private ListView mListView;
     private Listener mListener;
+    private ContentObserver mContentObserver;
 
     public ForecastFragment() {
     }
@@ -56,9 +59,31 @@ public class ForecastFragment
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        if (activity instanceof Listener){
+        if (activity instanceof Listener) {
             mListener = (Listener) activity;
         }
+        /**
+         * Listen for changes to the {@link com.example.android.sunshine.app.data.WeatherProvider}
+         * database so we can update the UI by restarting the {@link CursorLoader}.
+         */
+        mContentObserver = new ContentObserver(new Handler()) {
+            @Override
+            public void onChange(boolean selfChange) {
+                restartCursorLoader();
+            }
+        };
+        activity.getContentResolver().registerContentObserver(
+                WeatherContract.WeatherEntry.CONTENT_URI,
+                false,
+                mContentObserver
+        );
+    }
+
+    /**
+     *
+     */
+    public void restartCursorLoader() {
+        getLoaderManager().restartLoader(LOADER_ID, null, this);
     }
 
     @Override
@@ -123,7 +148,7 @@ public class ForecastFragment
                 if (cursor != null) {
                     String locationSetting = Utility.getPreferredLocation(getActivity());
                     long dateMsec = cursor.getLong(WeatherContract.COL_WEATHER_DATE);
-                    if (mListener != null){
+                    if (mListener != null) {
                         mListener.onListItemClick(locationSetting, dateMsec);
                     }
                 }
@@ -143,18 +168,29 @@ public class ForecastFragment
         getLoaderManager().initLoader(LOADER_ID, args, this);
     }
 
+    /**
+     * Unregister {@link #mListener} and {@link #mContentObserver} to prevent memory leaks and .
+     */
     @Override
     public void onDetach() {
         mListener = null;
+        Activity activity = getActivity();
+        if (activity != null) {
+            activity.getContentResolver().unregisterContentObserver(mContentObserver);
+        }
         super.onDetach();
     }
 
+    /**
+     * Start fetching weather data for the current location specified by the user in
+     * {@link SharedPreferences}.  We do not restart the {@link CursorLoader} here, and instead do
+     * it in the {@link #mContentObserver} callback, when we know the {@link FetchWeatherTask} has
+     * successfully updated the {@link com.example.android.sunshine.app.data.WeatherProvider} database.
+     */
     private void updateWeather() {
         Log.i(TAG, "updateWeather()");
         FetchWeatherTask weatherTask = new FetchWeatherTask(getActivity());
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        String location = prefs.getString(getString(R.string.pref_location_key),
-                getString(R.string.pref_location_default));
+        String location = Utility.getPreferredLocation(getActivity());
         weatherTask.execute(location);
     }
 
@@ -173,9 +209,9 @@ public class ForecastFragment
         String sortOrder = WeatherContract.WeatherEntry.COLUMN_DATE + " " + WeatherContract.SORT_ORDER_ASCENDING;
         cursorLoader = new CursorLoader(getActivity(), uri, WeatherContract.FORECAST_COLUMNS, null, null, sortOrder);
         Log.d(TAG, "onCreateLoader()"
-                        + "\n\t -- id: " + id
-                        + "\n\t -- uri: " + uri
-                        + "\n\t -- cursorLoader: " + cursorLoader
+                + "\n\t -- id: " + id
+                + "\n\t -- uri: " + uri
+                + "\n\t -- cursorLoader: " + cursorLoader
         );
         if (id == LOADER_ID) {
         } else {
@@ -190,9 +226,9 @@ public class ForecastFragment
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         Log.v(TAG, "onLoadFinished()"
-                        + "\n\t -- loader.getId(): " + loader.getId()
-                        + "\n\t -- loader: " + loader
-                        + "\n\t -- mListView: " + mListView
+                + "\n\t -- loader.getId(): " + loader.getId()
+                + "\n\t -- loader: " + loader
+                + "\n\t -- mListView: " + mListView
         );
         mForecastAdapter.swapCursor(data);
 //        WeatherDbHelper.printCursor(data);
@@ -219,21 +255,29 @@ public class ForecastFragment
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         Log.v(TAG, "onLoaderReset()"
-                        + "\n\t -- loader.getId(): " + loader.getId()
-                        + "\n\t -- loader: " + loader
+                + "\n\t -- loader.getId(): " + loader.getId()
+                + "\n\t -- loader: " + loader
         );
         mForecastAdapter.swapCursor(null);
     }
 
     /**
-     * Update the underlying data cache to get the correct weather for the new location, and then
-     * restart the CursorLoader to update the new weather data to the screen
+     * Update the {@link com.example.android.sunshine.app.data.WeatherProvider} database with the
+     * fresh weather data for the new location. We restart the {@link CursorLoader} in case the
+     * data is already cached in the database; it's better to use that than to wait for the network
+     * task, even if the data is stale.
+     *
+     * @param location
      */
-    public void onLocationChanged(){
+    public void onLocationChanged(String location) {
         updateWeather();
-        getLoaderManager().restartLoader(LOADER_ID, null, this);
+        restartCursorLoader();
     }
 
+
+    /**
+     * Use {@link Listener} to listen for list item clicks in the hosting {@link Activity}
+     */
     public interface Listener {
         void onListItemClick(String locationSetting, long dateInSec);
     }

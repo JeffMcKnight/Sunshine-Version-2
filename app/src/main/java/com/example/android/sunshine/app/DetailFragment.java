@@ -29,14 +29,12 @@ import android.widget.TextView;
 
 import com.example.android.sunshine.app.data.WeatherContract;
 
-import java.util.concurrent.TimeUnit;
-
 /**
  * A placeholder fragment containing a simple view.
  */
 public class DetailFragment
         extends Fragment
-        implements LoaderManager.LoaderCallbacks<Cursor> {
+        implements LoaderManager.LoaderCallbacks<Cursor>, LocationPreferenceListener {
 
     private static final String LOG_TAG = DetailFragment.class.getSimpleName();
 
@@ -307,6 +305,17 @@ public class DetailFragment
             getLoaderManager().initLoader(LOADER_ID, null, this);
         } else {
             getLoaderManager().restartLoader(LOADER_ID, null, this);
+        }
+    }
+
+    @Override
+    public void onLocationChanged(String location) {
+        Uri uri = mDetailsUri;
+        if (uri != null){
+            long date = WeatherContract.WeatherEntry.getDateFromUri(uri);
+            Uri updatedUri = WeatherContract.WeatherEntry.buildWeatherLocationWithDate(location, date);
+            mDetailsUri = updatedUri;
+            restartCursorLoader();
         }
     }
 
