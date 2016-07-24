@@ -4,5 +4,8 @@
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
         <!-- Customize your theme here. -->
     </style>
+    <style name="listview_forecast">
+        <item name="android:choiceMode">none</item>
+    </style>
 
 </resources>
