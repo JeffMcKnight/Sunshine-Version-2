@@ -22,6 +22,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -46,11 +47,15 @@ public class ForecastFragment
         implements LoaderManager.LoaderCallbacks<Cursor>, LocationPreferenceListener {
 
     private static final String TAG = ForecastFragment.class.getSimpleName();
+    private static final String KEY_LISTVIEW_SELECTED_POSITION =
+            ForecastFragment.class.getCanonicalName() + ".listview_selected_position";
+    public static final int INVALID_LISTVIEW_POSITION = -1;
     private final int LOADER_ID = this.hashCode();
     private ForecastAdapter mForecastAdapter;
     private ListView mListView;
     private Listener mListener;
     private ContentObserver mContentObserver;
+    private int mListViewPosition;
 
     public ForecastFragment() {
     }
@@ -88,7 +93,14 @@ public class ForecastFragment
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.i(TAG, "onCreate()");
+        Log.i(TAG, "onCreate()"
+                +"\t -- savedInstanceState: "+savedInstanceState
+        );
+        if (savedInstanceState != null){
+            mListViewPosition = savedInstanceState.getInt(KEY_LISTVIEW_SELECTED_POSITION, INVALID_LISTVIEW_POSITION);
+        } else {
+            mListViewPosition = INVALID_LISTVIEW_POSITION;
+        }
         // Add this line in order for this fragment to handle menu events.
         setHasOptionsMenu(true);
         updateWeather();
@@ -115,7 +127,9 @@ public class ForecastFragment
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-        Log.i(TAG, "onCreateView()");
+        Log.i(TAG, "onCreateView()"
+                +"\t -- savedInstanceState: "+savedInstanceState
+        );
         int flags = 0;
 //        // The ArrayAdapter will take data from a source and
 //        // use it to populate the ListView it's attached to.
@@ -151,6 +165,10 @@ public class ForecastFragment
                         mListener.onListItemClick(locationSetting, dateMsec);
                     }
                 }
+                mListViewPosition = position;
+                Log.i(TAG, "onItemClick()"
+                        +"\t -- mListViewPosition: "+mListViewPosition
+                );
             }
 
         });
@@ -162,9 +180,37 @@ public class ForecastFragment
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        Log.v(TAG, "onActivityCreated() -- LOADER_ID: " + LOADER_ID);
+        Log.v(TAG, "onActivityCreated()"
+                + " -- savedInstanceState: " + savedInstanceState
+                + " -- LOADER_ID: " + LOADER_ID
+        );
         Bundle args = null;
         getLoaderManager().initLoader(LOADER_ID, args, this);
+    }
+
+    @Override
+    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
+        Log.d(TAG, "onViewStateRestored()"
+                + "\t -- savedInstanceState: " +savedInstanceState
+        );
+
+
+
+        super.onViewStateRestored(savedInstanceState);
+        if (savedInstanceState != null){
+            mListViewPosition = savedInstanceState.getInt(KEY_LISTVIEW_SELECTED_POSITION, INVALID_LISTVIEW_POSITION);
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+            if (mListViewPosition > INVALID_LISTVIEW_POSITION){
+                savedInstanceState.putInt(KEY_LISTVIEW_SELECTED_POSITION, mListViewPosition);
+            }
+        Log.i(TAG, "onSaveInstanceState"
+            +"\t -- mListViewPosition: "+mListViewPosition
+                +"\t -- savedInstanceState: "+savedInstanceState
+        );
     }
 
     /**
@@ -230,6 +276,10 @@ public class ForecastFragment
                 + "\n\t -- mListView: " + mListView
         );
         mForecastAdapter.swapCursor(data);
+        if (mListViewPosition > INVALID_LISTVIEW_POSITION){
+            mListView.smoothScrollToPosition(mListViewPosition);
+            mListView.setItemChecked(mListViewPosition, true);
+        }
 //        WeatherDbHelper.printCursor(data);
 //        mForecastAdapter.notifyDataSetChanged();
 
