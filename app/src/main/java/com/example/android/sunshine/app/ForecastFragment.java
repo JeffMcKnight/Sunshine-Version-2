@@ -140,6 +140,7 @@ public class ForecastFragment
 //        Cursor cursor = getActivity().getContentResolver().query(uri, null, null, null, sortOrder);
 //        mForecastAdapter = new ForecastAdapter(getActivity(), cursor, flags);
         mForecastAdapter = new ForecastAdapter(getActivity(), null, flags);
+        mForecastAdapter.setUseTodayLayout(mListener.isUsingTodayLayout());
 //                new ArrayAdapter<String>(
 //                        getActivity(), // The current context (this activity)
 //                        R.layout.list_item_forecast, // The name of the layout ID.
@@ -329,6 +330,7 @@ public class ForecastFragment
      */
     public interface Listener {
         void onListItemClick(String locationSetting, long dateInSec);
+        boolean isUsingTodayLayout();
     }
 
     //    public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {

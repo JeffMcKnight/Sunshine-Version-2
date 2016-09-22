@@ -23,6 +23,7 @@ public class ForecastAdapter extends CursorAdapter {
 
     private static final int VIEW_TYPE_TODAY = 0;
     private static final int VIEW_TYPE_FUTURE_DAY = 1;
+    private boolean mUseTodayLayout;
 
     /**
      *
@@ -74,7 +75,7 @@ public class ForecastAdapter extends CursorAdapter {
 //            +"\t -- parent: "+parent
 //        );
         View view;
-        if (getCursor().getPosition() == VIEW_TYPE_TODAY){
+        if (getItemViewType(getCursor().getPosition()) == VIEW_TYPE_TODAY){
             view = LayoutInflater.from(context).inflate(R.layout.list_item_forecast_today, parent, false);
         } else {
             view = LayoutInflater.from(context).inflate(R.layout.list_item_forecast, parent, false);
@@ -95,7 +96,7 @@ public class ForecastAdapter extends CursorAdapter {
 
         ViewHolder viewHolder = (ViewHolder) view.getTag();
         int iconResourceId
-                = (cursor.getPosition() == VIEW_TYPE_TODAY)
+                = (getItemViewType(cursor.getPosition()) == VIEW_TYPE_TODAY)
                 ? Utility.getArtResourceForWeatherCondition(cursor.getInt(WeatherContract.COL_WEATHER_CONDITION_ID))
                 : Utility.getIconResourceForWeatherCondition(cursor.getInt(WeatherContract.COL_WEATHER_CONDITION_ID))
                 ;
@@ -131,8 +132,13 @@ public class ForecastAdapter extends CursorAdapter {
      */
     @Override
     public int getItemViewType(int position) {
-        return (position == 0 ? VIEW_TYPE_TODAY : VIEW_TYPE_FUTURE_DAY);
+        return (position == 0 && mUseTodayLayout ? VIEW_TYPE_TODAY : VIEW_TYPE_FUTURE_DAY);
     }
+
+    public void setUseTodayLayout(boolean useTodayLayout) {
+        mUseTodayLayout = useTodayLayout;
+    }
+
 
 
     /**

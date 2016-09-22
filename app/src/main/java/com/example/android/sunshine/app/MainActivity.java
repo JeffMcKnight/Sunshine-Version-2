@@ -142,4 +142,14 @@ public class MainActivity
         }
     }
 
+    /**
+     * Phones use the special "today" layout for the first list item so the user sees a big fancy
+     * icon, and tablets do not because we give the user the big fancy icon in the {@link DetailFragment}
+     * @return false if the device is a tablet
+     */
+    @Override
+    public boolean isUsingTodayLayout() {
+        return !getResources().getBoolean(R.bool.is_tablet);
+    }
+
 }
