@@ -1,6 +1,9 @@
 package com.example.android.sunshine.app.service;
 
+import android.app.AlarmManager;
 import android.app.IntentService;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -387,4 +390,34 @@ public class SunshineService extends IntentService {
         return null;
     }
 
+    /**
+     * Use this {@link BroadcastReceiver} to schedule weather updates
+     */
+    public static class AlarmReceiver extends BroadcastReceiver {
+        private static final String TAG = AlarmReceiver.class.getSimpleName();
+        private static final int REQUEST_CODE = AlarmReceiver.class.hashCode();
+        private static final long DELAY_FIVE_SECONDS_MSEC = 5 * 1000;
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String location = intent.getStringExtra(KEY_LOCATION);
+            Log.d(TAG, "onReceive()"
+                    + "\t -- location: " + location
+                    + "\t -- intent: " + intent
+            );
+            SunshineService.start(context, location);
+        }
+
+        public static void scheduleBroadcast(String location, Context context){
+            Log.d(TAG, "scheduleBroadcast()"
+                    + "\t -- location: " + location
+            );
+            AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+            Intent intent = new Intent(context, AlarmReceiver.class);
+            intent.putExtra(KEY_LOCATION, location);
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(context, REQUEST_CODE, intent, PendingIntent.FLAG_ONE_SHOT);
+            alarmManager.set(AlarmManager.ELAPSED_REALTIME, DELAY_FIVE_SECONDS_MSEC, pendingIntent);
+
+        }
+    }
 }

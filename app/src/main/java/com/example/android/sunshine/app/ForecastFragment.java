@@ -237,9 +237,7 @@ public class ForecastFragment
     private void updateWeather() {
         Log.i(TAG, "updateWeather()");
         String location = Utility.getPreferredLocation(getActivity());
-        SunshineService.start(getContext(), location);
-//        FetchWeatherTask weatherTask = new FetchWeatherTask(getActivity());
-//        weatherTask.execute(location);
+        SunshineService.AlarmReceiver.scheduleBroadcast(location, getContext());
     }
 
     /**
