@@ -19,7 +19,8 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -28,7 +29,7 @@ import android.view.View;
 import java.util.List;
 
 public class MainActivity
-        extends ActionBarActivity
+        extends AppCompatActivity
         implements ForecastFragment.Listener {
 
     private final String LOG_TAG = MainActivity.class.getSimpleName();
@@ -58,6 +59,27 @@ public class MainActivity
             }
         } else {
             mTwoPane = false;
+        }
+        createSupportActionBar(!mTwoPane);
+    }
+
+    /**
+     * Configure the {@link android.support.v7.app.ActionBar} here because I couldn't get it to work
+     * in XML.  Not sure if it's an emulator thing, or if something changed in the support lib since
+     * Google discourages using the logo now, or if I just did something wrong.
+     *
+     * @param shouldHideShadow
+     */
+    private void createSupportActionBar(boolean shouldHideShadow) {
+        ActionBar supportActionBar = getSupportActionBar();
+        if (supportActionBar != null){
+            if (shouldHideShadow) {
+                supportActionBar.setElevation(0.0f);
+            }
+            supportActionBar.setDisplayUseLogoEnabled(true);
+            supportActionBar.setDisplayShowHomeEnabled(true);
+            supportActionBar.setIcon(R.drawable.ic_logo);
+            supportActionBar.setDisplayShowTitleEnabled(false);
         }
     }
 
