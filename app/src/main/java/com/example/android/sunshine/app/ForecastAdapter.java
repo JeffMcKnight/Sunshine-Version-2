@@ -105,6 +105,8 @@ public class ForecastAdapter extends CursorAdapter {
         viewHolder.mForecastDescriptionView.setText(cursor.getString(WeatherContract.COL_WEATHER_DESC));
         viewHolder.mMaxTempView.setText(formatTemperature(cursor.getDouble(WeatherContract.COL_WEATHER_MAX_TEMP)));
         viewHolder.mMinTempView.setText(formatTemperature(cursor.getDouble(WeatherContract.COL_WEATHER_MIN_TEMP)));
+        // Set the description for the weather icon so Talkback can play the current weather description
+        viewHolder.mIconView.setContentDescription(viewHolder.mForecastDescriptionView.getText());
     }
 
     @Override

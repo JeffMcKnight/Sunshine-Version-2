@@ -375,6 +375,8 @@ public class DetailFragment
                         data.getDouble(DetailFragment.COL_WIND_DIRECTION),
                         context));
                 mPressureView.setText(Utility.formatPressure(data.getDouble(DetailFragment.COL_PRESSURE), context));
+                // Set the description for the weather icon so Talkback can play the current weather description
+                mIconView.setContentDescription(mForecastDescriptionView.getText());
             }
         }
     }
