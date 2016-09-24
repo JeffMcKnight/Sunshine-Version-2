@@ -19,16 +19,15 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.DatabaseUtils;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.support.annotation.Nullable;
 import android.text.format.Time;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.example.android.sunshine.app.data.WeatherContract;
 import com.example.android.sunshine.app.data.WeatherContract.WeatherEntry;
+import com.example.android.sunshine.app.data.WeatherDbHelper;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -42,7 +41,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Vector;
-import java.util.concurrent.TimeUnit;
 
 public class FetchWeatherTask extends AsyncTask<String, String, String[]> {
 
@@ -307,7 +305,7 @@ public class FetchWeatherTask extends AsyncTask<String, String, String[]> {
                 mContext.getContentResolver().bulkInsert(WeatherEntry.CONTENT_URI, contentValues);
             }
 
-            displayTable(locationSetting);
+            WeatherDbHelper.displayWeatherLocationTable(locationSetting, mContext);
 
 
 //            String[] resultStrs = convertContentValuesToUXFormat(cVVector);
@@ -319,41 +317,6 @@ public class FetchWeatherTask extends AsyncTask<String, String, String[]> {
             e.printStackTrace();
         }
         return null;
-    }
-
-    /**
-     * Debugging tool to display
-     * @param locationSetting
-     */
-    private void displayTable(String locationSetting) {
-        Vector<ContentValues> cVVector;// Sort order:  Ascending, by date.
-        String sortOrder = WeatherEntry.COLUMN_DATE + " ASC";
-//            FIXME: how is buildWeatherLocationWithStartDate supposed to work? all weather forecasts with specified date and later?
-        Uri weatherForLocationUri =
-                WeatherEntry.buildWeatherLocationWithStartDate(locationSetting, System.currentTimeMillis());
-//                    WeatherEntry.buildWeatherLocation(locationSetting);
-
-        // Students: Uncomment the next lines to display what what you stored in the bulkInsert
-
-        Cursor cur = mContext.getContentResolver().query(weatherForLocationUri,
-                null, null, null, sortOrder);
-
-        Log.i(LOG_TAG, "getWeatherDataFromJson()"
-                    +"\t -- cur.getCount(): "+cur.getCount()
-        );
-        cVVector = new Vector<ContentValues>(cur.getCount());
-        if ( cur.moveToFirst() ) {
-            do {
-                ContentValues cv = new ContentValues();
-                DatabaseUtils.cursorRowToContentValues(cur, cv);
-                Log.i(LOG_TAG, "getWeatherDataFromJson()"
-                                + "\t -- cv: " + cv
-                );
-                cVVector.add(cv);
-            } while (cur.moveToNext());
-        }
-
-        Log.d(LOG_TAG, "FetchWeatherTask Complete. " + cVVector.size() + " Rows Inserted");
     }
 
     @Override

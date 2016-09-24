@@ -16,19 +16,24 @@
 package com.example.android.sunshine.app.data;
 
 import android.annotation.TargetApi;
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.example.android.sunshine.app.FetchWeatherTask;
 import com.example.android.sunshine.app.data.WeatherContract.LocationEntry;
 import com.example.android.sunshine.app.data.WeatherContract.WeatherEntry;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.Vector;
 
 /**
  * Manages a local database for weather data.
@@ -38,9 +43,46 @@ public class WeatherDbHelper extends SQLiteOpenHelper {
 
     // If you change the database schema, you must increment the database version.
     private static final int DATABASE_VERSION = 2;
+    private static final String LOG_TAG = WeatherDbHelper.class.getSimpleName();
 
     public WeatherDbHelper(Context context) {
         super(context, WeatherContract.DATABASE_NAME, null, DATABASE_VERSION);
+    }
+
+    /**
+     * Debugging tool to display
+     * @param locationSetting
+     * @param context
+     */
+    public static void displayWeatherLocationTable(String locationSetting, Context context) {
+        Vector<ContentValues> cVVector;// Sort order:  Ascending, by date.
+        String sortOrder = WeatherEntry.COLUMN_DATE + " ASC";
+//            FIXME: how is buildWeatherLocationWithStartDate supposed to work? all weather forecasts with specified date and later?
+        Uri weatherForLocationUri =
+                WeatherEntry.buildWeatherLocationWithStartDate(locationSetting, System.currentTimeMillis());
+//                    WeatherEntry.buildWeatherLocation(locationSetting);
+
+        // Students: Uncomment the next lines to display what what you stored in the bulkInsert
+
+        Cursor cur = context.getContentResolver().query(weatherForLocationUri,
+                null, null, null, sortOrder);
+
+        Log.i(LOG_TAG, "getWeatherDataFromJson()"
+                    +"\t -- cur.getCount(): "+cur.getCount()
+        );
+        cVVector = new Vector<ContentValues>(cur.getCount());
+        if ( cur.moveToFirst() ) {
+            do {
+                ContentValues cv = new ContentValues();
+                DatabaseUtils.cursorRowToContentValues(cur, cv);
+                Log.i(LOG_TAG, "getWeatherDataFromJson()"
+                                + "\t -- cv: " + cv
+                );
+                cVVector.add(cv);
+            } while (cur.moveToNext());
+        }
+
+        Log.d(LOG_TAG, "FetchWeatherTask Complete. " + cVVector.size() + " Rows Inserted");
     }
 
     @Override
