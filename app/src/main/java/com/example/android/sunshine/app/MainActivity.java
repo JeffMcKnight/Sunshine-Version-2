@@ -26,6 +26,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.example.android.sunshine.app.sync.SunshineSyncAdapter;
+
 import java.util.List;
 
 public class MainActivity
@@ -61,6 +63,7 @@ public class MainActivity
             mTwoPane = false;
         }
         createSupportActionBar(!mTwoPane);
+        SunshineSyncAdapter.initializeSyncAdapter(this);
     }
 
     /**
