@@ -38,7 +38,6 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.example.android.sunshine.app.data.WeatherContract;
-import com.example.android.sunshine.app.service.SunshineService;
 import com.example.android.sunshine.app.sync.SunshineSyncAdapter;
 
 /**
@@ -237,9 +236,7 @@ public class ForecastFragment
      */
     private void updateWeather() {
         Log.i(TAG, "updateWeather()");
-        String location = Utility.getPreferredLocation(getActivity());
-//        SunshineService.AlarmReceiver.scheduleBroadcast(getContext(), location);
-        SunshineSyncAdapter.syncImmediately(getContext(), location);
+        SunshineSyncAdapter.syncImmediately(getContext());
     }
 
     /**

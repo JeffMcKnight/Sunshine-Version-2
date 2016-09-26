@@ -13,6 +13,7 @@ import android.util.Log;
 
 import com.example.android.sunshine.app.BuildConfig;
 import com.example.android.sunshine.app.R;
+import com.example.android.sunshine.app.Utility;
 import com.example.android.sunshine.app.data.WeatherDbHelper;
 
 import org.json.JSONException;
@@ -159,13 +160,12 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
     /**
      * Helper method to have the sync adapter sync immediately
      * @param context The context used to access the account service
-     * @param location
      */
-    public static void syncImmediately(Context context, String location) {
+    public static void syncImmediately(Context context) {
         Bundle bundle = new Bundle();
         bundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
         bundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
-        bundle.putString(KEY_LOCATION, location);
+        bundle.putString(KEY_LOCATION, Utility.getPreferredLocation(context));
         ContentResolver.requestSync(
                 getSyncAccount(context),
                 context.getString(R.string.content_authority),
