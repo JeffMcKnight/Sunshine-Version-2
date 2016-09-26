@@ -40,21 +40,8 @@ public class SunshineService extends IntentService {
     private static final String KEY_LOCATION = SunshineService.class.getCanonicalName() + ".location";
 
     public SunshineService(){
-        super(LOG_TAG);
+        super(LOG_TAG + "_" + Thread.currentThread().getName());
 
-    }
-    public SunshineService(String name) {
-        super(name);
-    }
-
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(LOG_TAG, "onStartCommand()"
-                + "\t -- intent: " +intent
-                + "\t -- flags: " +flags
-                + "\t -- startId: " +startId
-        );
-        return super.onStartCommand(intent, flags, startId);
     }
 
     public static void start(Context context, String zipCode){
@@ -408,7 +395,12 @@ public class SunshineService extends IntentService {
             SunshineService.start(context, location);
         }
 
-        public static void scheduleBroadcast(String location, Context context){
+        /**
+         *
+         * @param context
+         * @param location
+         */
+        public static void scheduleBroadcast(Context context, String location){
             Log.d(TAG, "scheduleBroadcast()"
                     + "\t -- location: " + location
             );
