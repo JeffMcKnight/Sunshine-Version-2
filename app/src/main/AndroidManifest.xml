@@ -3,6 +3,7 @@
     package="com.example.android.sunshine.app">
 
     <!-- This permission is necessary in order for Sunshine to perform network access. -->
+    <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS" />
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application

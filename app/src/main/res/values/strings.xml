@@ -56,4 +56,7 @@
     <string name="format_humidity">HUMIDITY: <xliff:g id="humidity">%d</xliff:g>%%</string>
     <string name="format_wind">WIND: <xliff:g id="windSpeed">%1.0f</xliff:g> km/h <xliff:g id="windDescription">%s</xliff:g></string>
     <string name="format_pressure">PRESSURE: <xliff:g id="pressure">%1.0f</xliff:g> kPa</string>
+
+    <!-- SyncAdapter related -->
+    <string name="sync_account_type">sunshine.example.com</string>
 </resources>
