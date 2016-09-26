@@ -36,7 +36,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
         bundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
         ContentResolver.requestSync(
                 getSyncAccount(context),
-                WeatherContract.CONTENT_AUTHORITY,
+                context.getString(R.string.content_authority),
                 bundle)
         ;
     }
