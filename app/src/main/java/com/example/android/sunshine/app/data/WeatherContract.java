@@ -15,6 +15,7 @@
  */
 package com.example.android.sunshine.app.data;
 
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.net.Uri;
 import android.provider.BaseColumns;
@@ -114,7 +115,7 @@ public class WeatherContract {
         /**
          * The MIME type; TODO: probably should not be the table's name
          */
-        public static final String CONTENT_TYPE = TABLE_NAME;
+        public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH;
         private static final String TAG = LocationEntry.class.getSimpleName();
 
         /**
@@ -182,7 +183,7 @@ public class WeatherContract {
         private static final String TAG = WeatherEntry.class.getSimpleName();
 
         public static final String TABLE_NAME = "weather";
-        public static final String PATH= WeatherEntry.TABLE_NAME;
+        public static final String PATH = TABLE_NAME;
         /**
          * The base URI for weather table queries.
          */
@@ -216,10 +217,10 @@ public class WeatherContract {
         public static final String COLUMN_DEGREES = "degrees";
 
         // MIME-type (?)
-        public static final String CONTENT_TYPE = "x-" + TABLE_NAME;
+        public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH;
 
         // MIME-type for location and data resource (?)
-        public static final String CONTENT_ITEM_TYPE = CONTENT_TYPE + "/" + "x-location-date";
+        public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH;;
         public static final int PATH_SEGMENT_LOCATION = 1;
 
         /**
