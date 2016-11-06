@@ -448,10 +448,10 @@ public class WeatherDbHelper extends SQLiteOpenHelper {
                     default:
                         break;
                 }
-                moveSucceeded = cursor.moveToNext();
-                if (!moveSucceeded){
-                    cursor.moveToFirst();
-                }
+            }
+            moveSucceeded = cursor.moveToNext();
+            if (!moveSucceeded){
+                cursor.moveToFirst();
             }
         }
         Log.v(TAG, rowAsString.toString());
