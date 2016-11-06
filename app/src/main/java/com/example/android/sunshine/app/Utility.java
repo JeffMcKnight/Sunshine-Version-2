@@ -21,12 +21,12 @@ import android.preference.PreferenceManager;
 import android.text.format.Time;
 import android.util.Log;
 
+import com.example.android.sunshine.app.sync.SunshineSyncAdapter;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.concurrent.TimeUnit;
 
 public class Utility {
     private static final String TAG = Utility.class.getSimpleName();
@@ -48,6 +48,32 @@ public class Utility {
                 .equals(context.getString(R.string.pref_units_metric));
     }
 
+    /**
+     * Retrieves state of {@link android.app.Notification}'s from the {@link SettingsActivity}'s
+     * {@link SharedPreferences}. Not sure why this works since we are passing the {@link Context}
+     * from the {@link SunshineSyncAdapter}, which uses the {@link android.app.Application}
+     * {@link Context}.  Seems like we should need the {@link SettingsActivity} {@link Context}.
+     * Maybe {@link PreferenceManager} searches through all the {@link SharedPreferences} files for
+     * the key we give it, regardless of {@link Context}??? Or maybe it only does that if it's the
+     * {@link android.app.Application} {@link Context} ???
+     *
+     *
+     * @param context
+     * @return
+     */
+    public static boolean isNotificationsEnabled(Context context) {
+        return PreferenceManager
+                .getDefaultSharedPreferences(context)
+                .getBoolean(context.getString(R.string.pref_notifications_enabled), true);
+    }
+
+    /**
+     *
+     * @param temperature
+     * @param isMetric
+     * @param context
+     * @return
+     */
     public static String formatTemperature(double temperature, boolean isMetric, Context context) {
         double temp;
         if ( !isMetric ) {
@@ -202,10 +228,23 @@ public class Utility {
         return monthDayString;
     }
 
+    /**
+     *
+     * @param humidity
+     * @param context
+     * @return
+     */
     public static CharSequence formatHumidity(long humidity, Context context) {
         return context.getString(R.string.format_humidity, humidity);
     }
 
+    /**
+     *
+     * @param windSpeed
+     * @param windDirectionDegrees
+     * @param context
+     * @return
+     */
     public static CharSequence formatWindSpeed(double windSpeed, double windDirectionDegrees, Context context) {
         Log.i(TAG, "formatWindSpeed()"
                 +"\t -- windDirectionDegrees: "+windDirectionDegrees
@@ -216,6 +255,12 @@ public class Utility {
         return context.getString(R.string.format_wind, windSpeed, windDirection);
     }
 
+    /**
+     *
+     * @param pressure
+     * @param context
+     * @return
+     */
     public static CharSequence formatPressure(double pressure, Context context) {
         return context.getString(R.string.format_pressure, pressure);
     }
@@ -289,4 +334,5 @@ public class Utility {
         }
         return -1;
     }
+
 }

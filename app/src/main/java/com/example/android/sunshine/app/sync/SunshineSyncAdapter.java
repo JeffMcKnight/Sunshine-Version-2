@@ -196,7 +196,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
         Context context = getContext();
         //checking the last update and notify if it' the first of the day
 
-        if (isForecastStale(context)) {
+        if (isForecastStale(context) && Utility.isNotificationsEnabled(context)) {
             // Last sync was more than 1 day ago, let's send a notification with the weather.
             String locationQuery = Utility.getPreferredLocation(context);
 

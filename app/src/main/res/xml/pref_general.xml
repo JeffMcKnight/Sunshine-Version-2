@@ -17,4 +17,12 @@
         android:entryValues="@array/pref_units_values"
         android:entries="@array/pref_units_options" />
 
+    <CheckBoxPreference
+        android:title="Show Notifications"
+        android:key="@string/pref_notifications_enabled"
+        android:defaultValue="true"
+        android:checked="true"
+        android:persistent="true"
+        />
+
 </PreferenceScreen>
