@@ -1,15 +1,16 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 24
-    buildToolsVersion "21.1.2"
+    compileSdkVersion 23
+    buildToolsVersion "24.0.3"
 
     defaultConfig {
         applicationId "com.example.android.sunshine.app"
         minSdkVersion 10
-        targetSdkVersion 24
+        targetSdkVersion 23
         versionCode 1
         versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         release {
@@ -24,5 +25,16 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:24.2.1'
+    // FIXME: update to current version when we figure out how to set the appcompat/annotations version for unit tests
+    compile 'com.android.support:appcompat-v7:23.1.1'
+    // Add support for JUnit 4 (5?)
+    androidTestCompile 'com.android.support.test:runner:0.5'
+    // Set this dependency to use JUnit 4 (5?) rules
+    androidTestCompile 'com.android.support.test:rules:0.5'
+
+    // TODO: Lets do some UI testing if time permits
+    // Set this dependency to build and run Espresso tests
+//    androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.1'
+    // Set this dependency to build and run UI Automator tests
+//    androidTestCompile 'com.android.support.test.uiautomator:uiautomator-v18:2.1.2'
 }

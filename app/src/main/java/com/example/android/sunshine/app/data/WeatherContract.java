@@ -183,11 +183,11 @@ public class WeatherContract {
         private static final String TAG = WeatherEntry.class.getSimpleName();
 
         public static final String TABLE_NAME = "weather";
-        public static final String PATH = TABLE_NAME;
+        public static final String BASE_PATH = TABLE_NAME;
         /**
          * The base URI for weather table queries.
          */
-        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH).build();
+        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(BASE_PATH).build();
 
         // Column with the foreign key into the location table.
         public static final String COLUMN_LOC_KEY = "location_id";
@@ -217,10 +217,10 @@ public class WeatherContract {
         public static final String COLUMN_DEGREES = "degrees";
 
         // MIME-type (?)
-        public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH;
+        public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + BASE_PATH;
 
         // MIME-type for location and data resource (?)
-        public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH;;
+        public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + BASE_PATH;;
         public static final int PATH_SEGMENT_LOCATION = 1;
 
         /**
@@ -318,6 +318,14 @@ public class WeatherContract {
          */
         public static Uri buildReturnUri(long id) {
             return CONTENT_URI.buildUpon().appendPath(String.valueOf(id)).build();
+        }
+
+        /**
+         * Return the base {@link Uri}
+         * @return
+         */
+        public static Uri buildWeatherUri() {
+            return CONTENT_URI;
         }
     }
 

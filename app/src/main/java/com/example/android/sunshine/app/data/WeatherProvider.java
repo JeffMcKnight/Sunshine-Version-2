@@ -166,9 +166,9 @@ public class WeatherProvider extends ContentProvider {
 
         // 2) Use the addURI function to match each of the types.  Use the constants from
         // WeatherContract to help define the types to the UriMatcher.
-        uriMatcher.addURI(WeatherContract.CONTENT_AUTHORITY, WeatherContract.WeatherEntry.PATH, WeatherProvider.WEATHER);
-        uriMatcher.addURI(WeatherContract.CONTENT_AUTHORITY, WeatherContract.WeatherEntry.PATH + "/*",WeatherProvider.WEATHER_WITH_LOCATION);
-        uriMatcher.addURI(WeatherContract.CONTENT_AUTHORITY, WeatherContract.WeatherEntry.PATH + "/*/#", WeatherProvider.WEATHER_WITH_LOCATION_AND_DATE);
+        uriMatcher.addURI(WeatherContract.CONTENT_AUTHORITY, WeatherContract.WeatherEntry.BASE_PATH, WeatherProvider.WEATHER);
+        uriMatcher.addURI(WeatherContract.CONTENT_AUTHORITY, WeatherContract.WeatherEntry.BASE_PATH + "/*",WeatherProvider.WEATHER_WITH_LOCATION);
+        uriMatcher.addURI(WeatherContract.CONTENT_AUTHORITY, WeatherContract.WeatherEntry.BASE_PATH + "/*/#", WeatherProvider.WEATHER_WITH_LOCATION_AND_DATE);
         uriMatcher.addURI(WeatherContract.CONTENT_AUTHORITY, WeatherContract.LocationEntry.PATH, WeatherProvider.LOCATION);
         uriMatcher.addURI(WeatherContract.CONTENT_AUTHORITY, WeatherContract.LocationEntry.PATH + "/#", WeatherProvider.LOCATION_WITH_ID);
 
@@ -212,6 +212,8 @@ public class WeatherProvider extends ContentProvider {
             case WEATHER:
                 return WeatherContract.WeatherEntry.CONTENT_TYPE;
             case LOCATION:
+                return WeatherContract.LocationEntry.CONTENT_TYPE;
+            case LOCATION_WITH_ID:
                 return WeatherContract.LocationEntry.CONTENT_TYPE;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);

@@ -2,20 +2,31 @@ package com.example.android.sunshine.app.sync;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.SyncRequest;
 import android.content.SyncResult;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
 
 import com.example.android.sunshine.app.BuildConfig;
+import com.example.android.sunshine.app.MainActivity;
 import com.example.android.sunshine.app.R;
 import com.example.android.sunshine.app.Utility;
+import com.example.android.sunshine.app.data.WeatherContract;
 import com.example.android.sunshine.app.data.WeatherDbHelper;
 
 import org.json.JSONException;
@@ -30,9 +41,25 @@ import java.util.concurrent.TimeUnit;
 
 public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
     public static final String LOG_TAG = SunshineSyncAdapter.class.getSimpleName();
+    private static final String TAG = SunshineSyncAdapter.class.getCanonicalName();
     /** Interval at which to sync with the weather, in seconds. Use {@link TimeUnit} to convert hours to seconds */
     public static final long SYNC_INTERVAL = TimeUnit.HOURS.toSeconds(3);
+
     public static final long SYNC_FLEXTIME = SYNC_INTERVAL/3;
+    private static final long DAY_IN_MILLIS = TimeUnit.DAYS.toMillis(1L);
+
+    private static final int WEATHER_NOTIFICATION_ID = 3004;
+    private static final String[] NOTIFY_WEATHER_PROJECTION = new String[] {
+            WeatherContract.WeatherEntry.COLUMN_WEATHER_ID,
+            WeatherContract.WeatherEntry.COLUMN_MAX_TEMP,
+            WeatherContract.WeatherEntry.COLUMN_MIN_TEMP,
+            WeatherContract.WeatherEntry.COLUMN_SHORT_DESC
+    };
+    // these indices must match the projection
+    private static final int INDEX_WEATHER_ID = 0;
+    private static final int INDEX_MAX_TEMP = 1;
+    private static final int INDEX_MIN_TEMP = 2;
+    private static final int INDEX_SHORT_DESC = 3;
 
     public SunshineSyncAdapter(Context context, boolean autoInitialize) {
         super(context, autoInitialize);
@@ -151,6 +178,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
 
         try {
             WeatherDbHelper.getWeatherDataFromJson(forecastJsonStr, locationQuery, getContext());
+            notifyWeather();
         } catch (JSONException e) {
             Log.e(LOG_TAG, e.getMessage(), e);
             e.printStackTrace();
@@ -158,6 +186,82 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
         // This will only happen if there was an error getting or parsing the forecast.
         return;
 
+    }
+
+    /**
+     *
+     */
+    private void notifyWeather(){
+        Log.i(LOG_TAG, "notifyWeather: ");
+        Context context = getContext();
+        //checking the last update and notify if it' the first of the day
+
+        if (isForecastStale(context)) {
+            // Last sync was more than 1 day ago, let's send a notification with the weather.
+            String locationQuery = Utility.getPreferredLocation(context);
+
+            Uri weatherUri = WeatherContract.WeatherEntry.buildWeatherLocationWithDate(locationQuery, System.currentTimeMillis());
+
+            // we'll query our contentProvider, as always
+            Cursor cursor = context.getContentResolver().query(weatherUri, NOTIFY_WEATHER_PROJECTION, null, null, null);
+
+            if (cursor.moveToFirst()) {
+                int weatherId = cursor.getInt(INDEX_WEATHER_ID);
+                double high = cursor.getDouble(INDEX_MAX_TEMP);
+                double low = cursor.getDouble(INDEX_MIN_TEMP);
+                String desc = cursor.getString(INDEX_SHORT_DESC);
+
+                int iconId = Utility.getIconResourceForWeatherCondition(weatherId);
+                String title = context.getString(R.string.app_name);
+
+                // Define the text of the forecast.
+                boolean isMetric = Utility.isMetric(context);
+                String contentText = String.format(context.getString(R.string.format_notification),
+                        desc,
+                        Utility.formatTemperature(high, isMetric, context),
+                        Utility.formatTemperature(low, isMetric, context));
+
+                //build your notification here.
+                Intent intent = new Intent(context, MainActivity.class);
+                PendingIntent pendingIntent
+                        = TaskStackBuilder
+                        .create(context)
+                        .addParentStack(MainActivity.class)
+                        .addNextIntent(intent)
+                        .getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+                Notification notification
+                        = new NotificationCompat.Builder(context)
+                        .setSmallIcon(iconId)
+                        .setContentTitle(title)
+                        .setContentText(contentText)
+                        .setContentIntent(pendingIntent)
+                        .setAutoCancel(true)
+                        .build();
+                ((NotificationManager) context
+                        .getSystemService(Context.NOTIFICATION_SERVICE))
+                        .notify(TAG, WEATHER_NOTIFICATION_ID, notification);
+
+
+                //refreshing last sync
+                SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
+                editor.putLong(context.getString(R.string.pref_last_notification), System.currentTimeMillis());
+                editor.commit();
+            }
+        }
+
+    }
+
+    /**
+     * Indicates whether the forecast data is more than 24 hours old
+     * @param context
+     * @return
+     */
+    private boolean isForecastStale(Context context) {
+        long lastNotificationMsec
+                = PreferenceManager
+                .getDefaultSharedPreferences(context)
+                .getLong(context.getString(R.string.pref_last_notification), 0);
+        return System.currentTimeMillis() - lastNotificationMsec >= DAY_IN_MILLIS;
     }
 
     /**
