@@ -411,21 +411,26 @@ public class WeatherDbHelper extends SQLiteOpenHelper {
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public static void printCursor(Cursor cursor) {
-        boolean moveSucceeded = false;
         int columnCount = cursor.getColumnCount();
         int rowCount = cursor.getCount();
         Log.d(TAG, "printCursor()"
-                        +"\t -- columnCount: "+columnCount
-                        +"\t -- rowCount: "+rowCount
+                + "\t -- columnCount: " + columnCount
+                + "\t -- rowCount: " + rowCount
+                + "\t -- cursor.getPosition(): " + cursor.getPosition()
         );
-        if (cursor.isBeforeFirst() || cursor.isAfterLast()){
-            cursor.moveToFirst();
-        }
-        StringBuilder rowAsString = new StringBuilder("printCursor():");
+        StringBuilder rowAsString;
         for (int j=0; j<rowCount; j++) {
-            rowAsString.append("\n");
+            if (cursor.isBeforeFirst() || cursor.isAfterLast()){
+                cursor.moveToFirst();
+            }
+            rowAsString = new StringBuilder();
+            rowAsString
+                    .append(" - row:")
+                    .append(cursor.getPosition())
+            ;
             for (int i = 0; i < columnCount; i++) {
-                rowAsString.append("\t - ")
+                rowAsString
+                        .append("\t - ")
                         .append(cursor.getColumnName(i))
                         .append(": ")
                 ;
@@ -449,12 +454,9 @@ public class WeatherDbHelper extends SQLiteOpenHelper {
                         break;
                 }
             }
-            moveSucceeded = cursor.moveToNext();
-            if (!moveSucceeded){
-                cursor.moveToFirst();
-            }
+            Log.v(TAG, rowAsString.toString());
+            cursor.moveToNext();
         }
-        Log.v(TAG, rowAsString.toString());
     }
 
     /**
