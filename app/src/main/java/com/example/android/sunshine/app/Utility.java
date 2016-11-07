@@ -18,6 +18,7 @@ package com.example.android.sunshine.app;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.text.format.Time;
 import android.util.Log;
 
@@ -27,6 +28,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.concurrent.TimeUnit;
 
 public class Utility {
     private static final String TAG = Utility.class.getSimpleName();
@@ -335,4 +337,22 @@ public class Utility {
         return -1;
     }
 
+    @NonNull
+    public static String getYesterdayDateAsSec() {
+        Calendar today = Calendar.getInstance();
+        today.setTimeInMillis(System.currentTimeMillis());
+        Calendar yesterday = Calendar.getInstance();
+        yesterday.setLenient(true);
+        yesterday.set(Calendar.YEAR, today.get(Calendar.YEAR));
+        yesterday.set(Calendar.DAY_OF_YEAR, today.get(Calendar.DAY_OF_YEAR) - 1);
+        yesterday.set(Calendar.HOUR_OF_DAY, 0);
+        yesterday.set(Calendar.MINUTE, 0);
+        yesterday.set(Calendar.SECOND, 0);
+        yesterday.set(Calendar.MILLISECOND, 0);
+        return String.valueOf(
+                TimeUnit.MILLISECONDS.toSeconds(
+                        yesterday.getTimeInMillis()
+                )
+        );
+    }
 }

@@ -29,10 +29,9 @@ import android.support.annotation.NonNull;
 import android.text.format.Time;
 import android.util.Log;
 
-import com.example.android.sunshine.app.FetchWeatherTask;
+import com.example.android.sunshine.app.Utility;
 import com.example.android.sunshine.app.data.WeatherContract.LocationEntry;
 import com.example.android.sunshine.app.data.WeatherContract.WeatherEntry;
-import com.example.android.sunshine.app.service.SunshineService;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -276,7 +275,7 @@ public class WeatherDbHelper extends SQLiteOpenHelper {
             );
             if ( cVVector.size() > 0 ) {
                 // Student: call bulkInsert to add the weatherEntries to the database here
-                context.getContentResolver().delete(WeatherEntry.CONTENT_URI, null, null);
+                deleteStale(context);
                 context.getContentResolver().bulkInsert(WeatherEntry.CONTENT_URI, contentValues);
             }
 
@@ -292,6 +291,19 @@ public class WeatherDbHelper extends SQLiteOpenHelper {
             e.printStackTrace();
         }
         return null;
+    }
+
+    /**
+     *
+     * @param context
+     * @return
+     */
+    public static int deleteStale(Context context) {
+        Log.i(TAG, "deleteStale()");
+        String selection = WeatherEntry.COLUMN_DATE + " < ? ";
+        String yesterdaySec = Utility.getYesterdayDateAsSec();
+        String[] selectionArgs = {yesterdaySec};
+        return context.getContentResolver().delete(WeatherEntry.buildWeatherUri(), selection, selectionArgs);
     }
 
     @Override
