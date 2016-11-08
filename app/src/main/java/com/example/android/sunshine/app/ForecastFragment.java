@@ -16,6 +16,8 @@
 package com.example.android.sunshine.app;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.ContentObserver;
 import android.database.Cursor;
@@ -38,7 +40,10 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.example.android.sunshine.app.data.WeatherContract;
+import com.example.android.sunshine.app.data.WeatherDbHelper;
 import com.example.android.sunshine.app.sync.SunshineSyncAdapter;
+
+import static com.example.android.sunshine.app.sync.SunshineSyncAdapter.LOG_TAG;
 
 /**
  * Encapsulates fetching the forecast and displaying it as a {@link ListView} layout.
@@ -57,15 +62,16 @@ public class ForecastFragment
     private Listener mListener;
     private ContentObserver mContentObserver;
     private int mListViewPosition;
+    private String mLocation;
 
     public ForecastFragment() {
     }
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        if (activity instanceof Listener) {
-            mListener = (Listener) activity;
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (context instanceof Listener) {
+            mListener = (Listener) context;
         }
         /**
          * Listen for changes to the {@link com.example.android.sunshine.app.data.WeatherProvider}
@@ -77,7 +83,7 @@ public class ForecastFragment
                 restartCursorLoader();
             }
         };
-        activity.getContentResolver().registerContentObserver(
+        context.getContentResolver().registerContentObserver(
                 WeatherContract.WeatherEntry.CONTENT_URI,
                 false,
                 mContentObserver
@@ -122,7 +128,30 @@ public class ForecastFragment
             updateWeather();
             return true;
         }
+        if (id == R.id.action_map) {
+            openPreferredLocationInMap();
+            return true;
+        }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void openPreferredLocationInMap() {
+
+        // Using the URI scheme for showing a location found on a map.  This super-handy
+        // intent can is detailed in the "Common Intents" page of Android's developer site:
+        // http://developer.android.com/guide/components/intents-common.html#Maps
+        Uri geoLocation = Uri.parse("geo:0,0?").buildUpon()
+                .appendQueryParameter("q", mLocation)
+                .build();
+
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(geoLocation);
+
+        if (intent.resolveActivity(getContext().getPackageManager()) != null) {
+            startActivity(intent);
+        } else {
+            Log.d(LOG_TAG, "Couldn't call " + mLocation + ", no receiving apps installed!");
+        }
     }
 
     @Override
@@ -280,6 +309,7 @@ public class ForecastFragment
             mListView.smoothScrollToPosition(mListViewPosition);
             mListView.setItemChecked(mListViewPosition, true);
         }
+        mLocation = extractMapQueryParam(data);
 //        WeatherDbHelper.printCursor(data);
 //        mForecastAdapter.notifyDataSetChanged();
 
@@ -296,6 +326,27 @@ public class ForecastFragment
 ////                startActivity(intent);
 //            }
 //        });
+    }
+
+    /**
+     * Create the query parameter for the Map Location menu item by pulling the latitude, longitude,
+     * and location_setting from the {@link Cursor} and building a {@link String} conforming to the
+     * Map ACTION_VIEW URI scheme.
+     * @param data
+     * @return
+     */
+    private String extractMapQueryParam(Cursor data) {
+        if (data.isAfterLast() || data.isBeforeFirst()){
+            data.moveToFirst();
+        }
+        return new StringBuilder()
+                .append(data.getFloat(WeatherContract.COL_COORD_LAT))
+                .append(",")
+                .append(data.getFloat(WeatherContract.COL_COORD_LONG))
+                .append("(")
+                .append(data.getString(WeatherContract.COL_LOCATION_SETTING))
+                .append(")")
+                .toString();
     }
 
     /**

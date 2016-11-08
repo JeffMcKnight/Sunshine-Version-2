@@ -335,8 +335,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                     setExtras(new Bundle()).build();
             ContentResolver.requestSync(request);
         } else {
-            ContentResolver.addPeriodicSync(account,
-                    authority, new Bundle(), syncInterval);
+            ContentResolver.addPeriodicSync(account, authority, new Bundle(), syncInterval);
         }
     }
 
